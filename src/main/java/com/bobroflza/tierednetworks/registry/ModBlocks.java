@@ -4,7 +4,8 @@ import com.bobroflza.tierednetworks.TieredNetworks;
 import com.bobroflza.tierednetworks.block.AccessPointBlock;
 import com.bobroflza.tierednetworks.block.ControllerBlock;
 import com.bobroflza.tierednetworks.block.DriveBayBlock;
-import com.bobroflza.tierednetworks.block.ImportInterfaceBlock;
+import com.bobroflza.tierednetworks.block.FlatInterfaceBlock;
+import com.bobroflza.tierednetworks.block.InterfaceBlock;
 import com.bobroflza.tierednetworks.block.NetworkBlock;
 import com.bobroflza.tierednetworks.block.TerminalBlock;
 import com.bobroflza.tierednetworks.grid.AccessPointTier;
@@ -29,7 +30,13 @@ public final class ModBlocks {
             () -> new TerminalBlock(NetworkBlock.defaultProperties().lightLevel(s -> 6)));
 
     public static final RegistryObject<Block> IMPORT_INTERFACE = BLOCKS.register("import_interface",
-            () -> new ImportInterfaceBlock(NetworkBlock.defaultProperties()));
+            () -> new InterfaceBlock(NetworkBlock.defaultProperties(), false));
+    public static final RegistryObject<Block> FLAT_IMPORT_INTERFACE = BLOCKS.register("flat_import_interface",
+            () -> new FlatInterfaceBlock(NetworkBlock.defaultProperties().noOcclusion(), false));
+    public static final RegistryObject<Block> EXPORT_INTERFACE = BLOCKS.register("export_interface",
+            () -> new InterfaceBlock(NetworkBlock.defaultProperties(), true));
+    public static final RegistryObject<Block> FLAT_EXPORT_INTERFACE = BLOCKS.register("flat_export_interface",
+            () -> new FlatInterfaceBlock(NetworkBlock.defaultProperties().noOcclusion(), true));
 
     public static final Map<AccessPointTier, RegistryObject<Block>> ACCESS_POINTS = new EnumMap<>(AccessPointTier.class);
 

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "IDI",
+    "PWP",
+    "IDI"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "D": {
+      "item": "minecraft:dropper"
+    },
+    "P": {
+      "item": "tierednetworks:network_processor"
+    },
+    "W": {
+      "item": "tierednetworks:wireless_core"
+    }
+  },
+  "result": {
+    "item": "tierednetworks:export_interface",
+    "count": 2
+  }
+}

@@ -18,6 +18,10 @@ public enum NetworkStatus {
         this.color = color;
     }
 
+    public String translationKey() {
+        return "status.tierednetworks." + key;
+    }
+
     public Component display() {
         return Component.translatable("status.tierednetworks." + key).withStyle(color);
     }

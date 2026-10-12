@@ -17,6 +17,7 @@ public final class ClientSetup {
         event.enqueueWork(() -> {
             MenuScreens.register(ModMenus.DRIVE_BAY.get(), DriveBayScreen::new);
             MenuScreens.register(ModMenus.TERMINAL.get(), TerminalScreen::new);
+            MenuScreens.register(ModMenus.INTERFACE.get(), InterfaceScreen::new);
         });
     }
 }

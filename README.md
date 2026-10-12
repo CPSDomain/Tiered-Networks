@@ -21,9 +21,11 @@ Breaking the controller keeps its network ID on the dropped item, so you can mov
 
 The controller and the chunks holding your devices must be loaded for the network to work.
 
-## Getting items in
+## Getting items in and out
 
-Place an **Import Interface** against a chest or machine (its arrow faces the block you clicked) and link it. It pulls up to 64 items every half second from that inventory, and accepts anything hoppers, pipes or auto-ejecting machines push into any side.
+- **Import Interface**: the full block pulls from inventories on all six sides; the **Flat Import Interface** sticks to one chest or machine. Hoppers, pipes and auto-ejecting machines can push into either. 64 items every half second.
+- **Export Interface** (full and flat): pushes the items in its filter out of the network into the inventory next to it.
+- Right-click any interface for its 9-slot filter and online status. Import filters can be an allow list or a deny list; an empty import filter takes everything, an empty export filter exports nothing.
 
 ## Config
 
@@ -33,7 +35,8 @@ Place an **Import Interface** against a chest or machine (its arrow faces the bl
 
 - **0.1.0**: controller, access points, linker, drive bay, storage cells (1k–256k), terminal
 - **0.1.1**: Import Interface
-- **0.2.0**: export interface, wireless handheld terminal, level emitter
+- **0.1.2**: filters, flat interfaces, Export Interface
+- **0.2.0**: wireless handheld terminal, level emitter
 - **0.3.0**: autocrafting (pattern encoder, pattern provider, crafting CPU, crafting monitor)
 - **0.4.0**: fluid and gas cells, Tiered Industries integration
 - **1.0.0**: polish, balance, trusted-player access lists

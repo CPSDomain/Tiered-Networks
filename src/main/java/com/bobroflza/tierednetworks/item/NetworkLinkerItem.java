@@ -2,6 +2,8 @@ package com.bobroflza.tierednetworks.item;
 
 import com.bobroflza.tierednetworks.blockentity.ControllerBlockEntity;
 import com.bobroflza.tierednetworks.blockentity.NetworkNodeBlockEntity;
+import com.bobroflza.tierednetworks.grid.NetworkTracker;
+import com.bobroflza.tierednetworks.grid.NodeKind;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -23,7 +25,7 @@ import java.util.UUID;
 /**
  * Sneak + right-click a controller to copy its network.
  * Right-click any other network block to link it to that network.
- * Sneak + right-click a network block to see its status.
+ * Sneak + right-click any linked network block to copy its network too (owner or op).
  * Sneak + right-click air to clear the linker.
  */
 public class NetworkLinkerItem extends Item {
@@ -68,7 +70,24 @@ public class NetworkLinkerItem extends Item {
         }
 
         if (player.isShiftKeyDown()) {
-            player.displayClientMessage(node.describeNetwork(), false);
+            // Sneak-clicking any linked device copies its network, as long as you own it (or are an op).
+            UUID nodeNet = node.getNetworkId();
+            if (nodeNet == null) {
+                player.displayClientMessage(node.describeNetwork(), false);
+                return InteractionResult.CONSUME;
+            }
+            ControllerBlockEntity owner = level.getServer() == null ? null
+                    : NetworkTracker.getController(level.getServer(), nodeNet);
+            boolean allowed = player.hasPermissions(2) || (owner != null && owner.isOwner(player));
+            if (!allowed) {
+                player.displayClientMessage(Component.translatable(owner == null
+                        ? "message.tierednetworks.copy_needs_controller" : "message.tierednetworks.not_owner")
+                        .withStyle(ChatFormatting.RED), true);
+                return InteractionResult.FAIL;
+            }
+            stack.getOrCreateTag().putUUID(TAG_NETWORK, nodeNet);
+            player.displayClientMessage(Component.translatable("message.tierednetworks.linker_bound", nodeNet.toString().substring(0, 8))
+                    .withStyle(ChatFormatting.GREEN), true);
             return InteractionResult.CONSUME;
         }
 
@@ -78,8 +97,14 @@ public class NetworkLinkerItem extends Item {
             return InteractionResult.FAIL;
         }
         node.setNetworkId(id);
-        player.displayClientMessage(Component.translatable("message.tierednetworks.device_linked", id.toString().substring(0, 8))
-                .withStyle(ChatFormatting.GREEN), true);
+        if (node.getNodeKind() == NodeKind.ACCESS_POINT) {
+            // Access points switch on at the controller's next mesh update, up to a second later.
+            player.displayClientMessage(Component.translatable("message.tierednetworks.ap_linked", id.toString().substring(0, 8))
+                    .withStyle(ChatFormatting.GREEN), true);
+        } else {
+            player.displayClientMessage(Component.translatable("message.tierednetworks.device_linked",
+                    id.toString().substring(0, 8), node.getStatus().display()).withStyle(ChatFormatting.GREEN), true);
+        }
         return InteractionResult.CONSUME;
     }
 

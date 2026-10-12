@@ -1,10 +1,7 @@
 package com.bobroflza.tierednetworks.block;
 
-import com.bobroflza.tierednetworks.blockentity.ImportInterfaceBlockEntity;
-import com.bobroflza.tierednetworks.blockentity.NetworkNodeBlockEntity;
-import com.bobroflza.tierednetworks.registry.ModBlockEntities;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -25,17 +22,37 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.Nullable;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
-/** Its front points at the block you clicked to place it, and pulls from that block's inventory. */
-public class ImportInterfaceBlock extends NetworkBlock {
+/**
+ * Flat panel Import or Export Interface. Click the side of a chest or machine to stick it on;
+ * it only works with that one block. FACING points at the block it is attached to.
+ */
+public class FlatInterfaceBlock extends NetworkBlock {
     public static final DirectionProperty FACING = DirectionalBlock.FACING;
+    private static final Map<Direction, VoxelShape> SHAPES = new EnumMap<>(Direction.class);
 
-    public ImportInterfaceBlock(Properties props) {
+    static {
+        SHAPES.put(Direction.NORTH, Block.box(0, 0, 0, 16, 16, 2));
+        SHAPES.put(Direction.SOUTH, Block.box(0, 0, 14, 16, 16, 16));
+        SHAPES.put(Direction.WEST, Block.box(0, 0, 0, 2, 16, 16));
+        SHAPES.put(Direction.EAST, Block.box(14, 0, 0, 16, 16, 16));
+        SHAPES.put(Direction.DOWN, Block.box(0, 0, 0, 16, 2, 16));
+        SHAPES.put(Direction.UP, Block.box(0, 14, 0, 16, 16, 16));
+    }
+
+    private final boolean export;
+
+    public FlatInterfaceBlock(Properties props, boolean export) {
         super(props);
-        registerDefaultState(stateDefinition.any().setValue(FACING, net.minecraft.core.Direction.NORTH));
+        this.export = export;
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 
     @Override
@@ -45,7 +62,14 @@ public class ImportInterfaceBlock extends NetworkBlock {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext ctx) {
+        // Points into the block that was clicked, so the panel sits flat against it.
         return defaultBlockState().setValue(FACING, ctx.getClickedFace().getOpposite());
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext ctx) {
+        return SHAPES.get(state.getValue(FACING));
     }
 
     @Override
@@ -63,28 +87,22 @@ public class ImportInterfaceBlock extends NetworkBlock {
     @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new ImportInterfaceBlockEntity(pos, state);
+        return InterfaceBlock.createInterface(export, pos, state);
     }
 
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (level.isClientSide || type != ModBlockEntities.IMPORT_INTERFACE.get()) return null;
-        return (lvl, pos, st, be) -> ((ImportInterfaceBlockEntity) be).serverTick();
+        return InterfaceBlock.ticker(level);
     }
 
     @Override
     protected InteractionResult onUse(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof NetworkNodeBlockEntity node) {
-            player.displayClientMessage(node.describeNetwork(), false);
-        }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InterfaceBlock.openMenu(level, pos, player);
     }
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.tierednetworks.import_pull").withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.tierednetworks.import_push").withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.tierednetworks.power_cost", 2).withStyle(ChatFormatting.DARK_GRAY));
+        InterfaceBlock.tooltip(tooltip, export, true);
     }
 }

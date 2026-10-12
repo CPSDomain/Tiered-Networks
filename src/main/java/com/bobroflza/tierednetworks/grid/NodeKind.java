@@ -5,5 +5,6 @@ public enum NodeKind {
     ACCESS_POINT,
     DRIVE,
     TERMINAL,
-    IMPORT
+    IMPORT,
+    EXPORT
 }

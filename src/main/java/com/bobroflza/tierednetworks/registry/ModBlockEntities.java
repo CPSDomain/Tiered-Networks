@@ -4,6 +4,7 @@ import com.bobroflza.tierednetworks.TieredNetworks;
 import com.bobroflza.tierednetworks.blockentity.AccessPointBlockEntity;
 import com.bobroflza.tierednetworks.blockentity.ControllerBlockEntity;
 import com.bobroflza.tierednetworks.blockentity.DriveBayBlockEntity;
+import com.bobroflza.tierednetworks.blockentity.ExportInterfaceBlockEntity;
 import com.bobroflza.tierednetworks.blockentity.ImportInterfaceBlockEntity;
 import com.bobroflza.tierednetworks.blockentity.TerminalBlockEntity;
 import net.minecraft.world.level.block.Block;
@@ -30,7 +31,12 @@ public final class ModBlockEntities {
             () -> BlockEntityType.Builder.of(TerminalBlockEntity::new, ModBlocks.TERMINAL.get()).build(null));
 
     public static final RegistryObject<BlockEntityType<ImportInterfaceBlockEntity>> IMPORT_INTERFACE = BLOCK_ENTITIES.register("import_interface",
-            () -> BlockEntityType.Builder.of(ImportInterfaceBlockEntity::new, ModBlocks.IMPORT_INTERFACE.get()).build(null));
+            () -> BlockEntityType.Builder.of(ImportInterfaceBlockEntity::new,
+                    ModBlocks.IMPORT_INTERFACE.get(), ModBlocks.FLAT_IMPORT_INTERFACE.get()).build(null));
+
+    public static final RegistryObject<BlockEntityType<ExportInterfaceBlockEntity>> EXPORT_INTERFACE = BLOCK_ENTITIES.register("export_interface",
+            () -> BlockEntityType.Builder.of(ExportInterfaceBlockEntity::new,
+                    ModBlocks.EXPORT_INTERFACE.get(), ModBlocks.FLAT_EXPORT_INTERFACE.get()).build(null));
 
     private ModBlockEntities() {}
 }

@@ -9,6 +9,9 @@
     "tierednetworks:quantum_access_point",
     "tierednetworks:drive_bay",
     "tierednetworks:terminal",
-    "tierednetworks:import_interface"
+    "tierednetworks:import_interface",
+    "tierednetworks:export_interface",
+    "tierednetworks:flat_import_interface",
+    "tierednetworks:flat_export_interface"
   ]
 }

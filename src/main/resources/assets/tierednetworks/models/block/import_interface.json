@@ -1,8 +1,6 @@
 {
-  "parent": "minecraft:block/orientable",
+  "parent": "minecraft:block/cube_all",
   "textures": {
-    "top": "tierednetworks:block/machine_casing",
-    "front": "tierednetworks:block/import_interface_front",
-    "side": "tierednetworks:block/machine_casing"
+    "all": "tierednetworks:block/import_interface"
   }
 }

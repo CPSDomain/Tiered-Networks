@@ -32,6 +32,9 @@ public final class ModItems {
     public static final RegistryObject<Item> DRIVE_BAY = block(ModBlocks.DRIVE_BAY);
     public static final RegistryObject<Item> TERMINAL = block(ModBlocks.TERMINAL);
     public static final RegistryObject<Item> IMPORT_INTERFACE = block(ModBlocks.IMPORT_INTERFACE);
+    public static final RegistryObject<Item> FLAT_IMPORT_INTERFACE = block(ModBlocks.FLAT_IMPORT_INTERFACE);
+    public static final RegistryObject<Item> EXPORT_INTERFACE = block(ModBlocks.EXPORT_INTERFACE);
+    public static final RegistryObject<Item> FLAT_EXPORT_INTERFACE = block(ModBlocks.FLAT_EXPORT_INTERFACE);
 
     // Tools.
     public static final RegistryObject<Item> NETWORK_LINKER = ITEMS.register("network_linker",

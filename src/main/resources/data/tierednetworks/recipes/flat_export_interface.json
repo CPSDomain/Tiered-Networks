@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "tierednetworks:export_interface"
+    }
+  ],
+  "result": {
+    "item": "tierednetworks:flat_export_interface",
+    "count": 2
+  }
+}
