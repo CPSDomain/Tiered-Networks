@@ -31,6 +31,7 @@ public final class ModItems {
 
     public static final RegistryObject<Item> DRIVE_BAY = block(ModBlocks.DRIVE_BAY);
     public static final RegistryObject<Item> TERMINAL = block(ModBlocks.TERMINAL);
+    public static final RegistryObject<Item> IMPORT_INTERFACE = block(ModBlocks.IMPORT_INTERFACE);
 
     // Tools.
     public static final RegistryObject<Item> NETWORK_LINKER = ITEMS.register("network_linker",

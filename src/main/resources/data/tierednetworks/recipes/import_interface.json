@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "IHI",
+    "PWP",
+    "IHI"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "H": {
+      "item": "minecraft:hopper"
+    },
+    "P": {
+      "item": "tierednetworks:network_processor"
+    },
+    "W": {
+      "item": "tierednetworks:wireless_core"
+    }
+  },
+  "result": {
+    "item": "tierednetworks:import_interface",
+    "count": 2
+  }
+}

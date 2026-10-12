@@ -55,6 +55,11 @@ public final class NetworkStorage {
 
     /** Inserts as much of the stack as fits. Returns what's left over. */
     public static ItemStack insert(MinecraftServer server, UUID id, ItemStack stack) {
+        return insert(server, id, stack, false);
+    }
+
+    /** Inserts (or, when simulating, checks) as much of the stack as fits. Returns what's left over. */
+    public static ItemStack insert(MinecraftServer server, UUID id, ItemStack stack, boolean simulate) {
         if (stack.isEmpty()) return ItemStack.EMPTY;
         ItemKey key = ItemKey.of(stack);
         long left = stack.getCount();
@@ -66,10 +71,10 @@ public final class NetworkStorage {
                 if (left <= 0) break;
                 boolean holds = ref.cell().contains(key);
                 if ((pass == 0) != holds) continue;
-                long done = ref.cell().insert(key, left, false);
+                long done = ref.cell().insert(key, left, simulate);
                 if (done > 0) {
                     left -= done;
-                    ref.drive().onCellsChanged();
+                    if (!simulate) ref.drive().onCellsChanged();
                 }
             }
         }

@@ -8,6 +8,7 @@
     "tierednetworks:dimensional_access_point",
     "tierednetworks:quantum_access_point",
     "tierednetworks:drive_bay",
-    "tierednetworks:terminal"
+    "tierednetworks:terminal",
+    "tierednetworks:import_interface"
   ]
 }
