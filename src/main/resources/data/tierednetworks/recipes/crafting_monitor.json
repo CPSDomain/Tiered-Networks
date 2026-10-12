@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "tierednetworks:crafting_unit"
+    },
+    {
+      "item": "minecraft:glass_pane"
+    },
+    {
+      "item": "tierednetworks:network_processor"
+    }
+  ],
+  "result": {
+    "item": "tierednetworks:crafting_monitor",
+    "count": 1
+  }
+}

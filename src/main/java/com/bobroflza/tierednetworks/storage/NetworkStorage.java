@@ -1,6 +1,7 @@
 package com.bobroflza.tierednetworks.storage;
 
 import com.bobroflza.tierednetworks.blockentity.DriveBayBlockEntity;
+import com.bobroflza.tierednetworks.crafting.CraftingManager;
 import com.bobroflza.tierednetworks.grid.NetworkTracker;
 import com.bobroflza.tierednetworks.grid.NodeKind;
 import net.minecraft.core.GlobalPos;
@@ -63,6 +64,9 @@ public final class NetworkStorage {
         if (stack.isEmpty()) return ItemStack.EMPTY;
         ItemKey key = ItemKey.of(stack);
         long left = stack.getCount();
+        // A running crafting job waiting for this item gets it first.
+        left -= CraftingManager.offer(id, key, left, simulate);
+        if (left <= 0) return ItemStack.EMPTY;
         List<CellRef> cells = onlineCells(server, id);
 
         // First pass: cells that already hold this item. Second pass: any cell with room.

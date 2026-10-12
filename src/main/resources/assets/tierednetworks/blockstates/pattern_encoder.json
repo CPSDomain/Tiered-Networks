@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "tierednetworks:block/pattern_encoder"
+    },
+    "facing=east": {
+      "model": "tierednetworks:block/pattern_encoder",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "tierednetworks:block/pattern_encoder",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "tierednetworks:block/pattern_encoder",
+      "y": 270
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "tierednetworks:block/pattern_provider"
+    }
+  }
+}

@@ -1,5 +1,6 @@
 package com.bobroflza.tierednetworks;
 
+import com.bobroflza.tierednetworks.crafting.CraftingManager;
 import com.bobroflza.tierednetworks.grid.NetworkTracker;
 import com.bobroflza.tierednetworks.packet.ModPackets;
 import com.bobroflza.tierednetworks.registry.ModBlockEntities;
@@ -37,8 +38,14 @@ public class TieredNetworks {
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.SPEC);
 
-        MinecraftForge.EVENT_BUS.addListener((ServerAboutToStartEvent e) -> NetworkTracker.clear());
-        MinecraftForge.EVENT_BUS.addListener((ServerStoppedEvent e) -> NetworkTracker.clear());
+        MinecraftForge.EVENT_BUS.addListener((ServerAboutToStartEvent e) -> {
+            NetworkTracker.clear();
+            CraftingManager.clear();
+        });
+        MinecraftForge.EVENT_BUS.addListener((ServerStoppedEvent e) -> {
+            NetworkTracker.clear();
+            CraftingManager.clear();
+        });
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {

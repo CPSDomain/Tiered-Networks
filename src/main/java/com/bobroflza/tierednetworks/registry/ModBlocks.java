@@ -2,6 +2,11 @@ package com.bobroflza.tierednetworks.registry;
 
 import com.bobroflza.tierednetworks.TieredNetworks;
 import com.bobroflza.tierednetworks.block.AccessPointBlock;
+import com.bobroflza.tierednetworks.block.AssemblerBlock;
+import com.bobroflza.tierednetworks.block.CraftingBlock;
+import com.bobroflza.tierednetworks.block.PatternEncoderBlock;
+import com.bobroflza.tierednetworks.block.PatternProviderBlock;
+import com.bobroflza.tierednetworks.crafting.CpuPart;
 import com.bobroflza.tierednetworks.block.ControllerBlock;
 import com.bobroflza.tierednetworks.block.DriveBayBlock;
 import com.bobroflza.tierednetworks.block.FlatInterfaceBlock;
@@ -42,6 +47,23 @@ public final class ModBlocks {
     public static final RegistryObject<Block> LEVEL_EMITTER = BLOCKS.register("level_emitter",
             () -> new LevelEmitterBlock(NetworkBlock.defaultProperties()
                     .lightLevel(s -> s.getValue(LevelEmitterBlock.POWERED) ? 7 : 0)));
+
+    // Autocrafting.
+    public static final RegistryObject<Block> PATTERN_ENCODER = BLOCKS.register("pattern_encoder",
+            () -> new PatternEncoderBlock(NetworkBlock.defaultProperties()));
+    public static final RegistryObject<Block> PATTERN_PROVIDER = BLOCKS.register("pattern_provider",
+            () -> new PatternProviderBlock(NetworkBlock.defaultProperties()));
+    public static final RegistryObject<Block> ASSEMBLER = BLOCKS.register("molecular_assembler",
+            () -> new AssemblerBlock(NetworkBlock.defaultProperties().noOcclusion()
+                    .lightLevel(s -> s.getValue(AssemblerBlock.LIT) ? 9 : 0)));
+    public static final Map<CpuPart, RegistryObject<Block>> CPU_PARTS = new EnumMap<>(CpuPart.class);
+
+    static {
+        for (CpuPart part : CpuPart.values()) {
+            CPU_PARTS.put(part, BLOCKS.register(part.id(), () -> new CraftingBlock(NetworkBlock.defaultProperties()
+                    .lightLevel(s -> s.getValue(CraftingBlock.BUSY) ? 8 : (part == CpuPart.CO_PROCESSOR ? 3 : 0)), part)));
+        }
+    }
 
     public static final Map<AccessPointTier, RegistryObject<Block>> ACCESS_POINTS = new EnumMap<>(AccessPointTier.class);
 

@@ -4,6 +4,8 @@ import com.bobroflza.tierednetworks.TieredNetworks;
 import com.bobroflza.tierednetworks.menu.DriveBayMenu;
 import com.bobroflza.tierednetworks.menu.InterfaceMenu;
 import com.bobroflza.tierednetworks.menu.LevelEmitterMenu;
+import com.bobroflza.tierednetworks.menu.PatternEncoderMenu;
+import com.bobroflza.tierednetworks.menu.PatternProviderMenu;
 import com.bobroflza.tierednetworks.menu.TerminalMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraftforge.common.extensions.IForgeMenuType;
@@ -25,6 +27,12 @@ public final class ModMenus {
 
     public static final RegistryObject<MenuType<LevelEmitterMenu>> LEVEL_EMITTER = MENUS.register("level_emitter",
             () -> IForgeMenuType.create(LevelEmitterMenu::new));
+
+    public static final RegistryObject<MenuType<PatternEncoderMenu>> PATTERN_ENCODER = MENUS.register("pattern_encoder",
+            () -> IForgeMenuType.create(PatternEncoderMenu::new));
+
+    public static final RegistryObject<MenuType<PatternProviderMenu>> PATTERN_PROVIDER = MENUS.register("pattern_provider",
+            () -> IForgeMenuType.create(PatternProviderMenu::new));
 
     private ModMenus() {}
 }

@@ -32,6 +32,13 @@ The controller and the chunks holding your devices must be loaded for the networ
 - **Wireless Terminal**: sneak + right-click a controller or linked device to bind it, then right-click to open the network anywhere it reaches.
 - **Level Emitter**: redstone signal when the network holds at least (or fewer than) a set amount of an item. Empty slot counts everything.
 
+## Autocrafting
+
+1. **Pattern Encoder**: put Blank Patterns in the top slot, lay out a crafting recipe (Crafting mode) or a machine's inputs and outputs (Processing mode), press Encode.
+2. **Pattern Provider** (linked): holds 9 patterns. A **Molecular Assembler** touching it runs crafting patterns; a machine touching it runs processing patterns. Machine output must come back into the network: eject into the provider, or use an Import Interface.
+3. **Crafting CPU**: touching Crafting Units, at least one Crafting Storage (1k-64k), optional Co-Processors and a Crafting Monitor. Link one block and the whole CPU links. One job per CPU.
+4. In a terminal, middle-click (or Ctrl + click) a craftable item, enter an amount, press Craft. Missing ingredients are listed in chat.
+
 ## Config
 
 `config/tierednetworks-common.toml`: `requirePower` (set false to run without an FE mod), `controllerRange`, `controllerBaseCost`.
@@ -42,6 +49,6 @@ The controller and the chunks holding your devices must be loaded for the networ
 - **0.1.1**: Import Interface
 - **0.1.2**: filters, flat interfaces, Export Interface
 - **0.2.0**: Wireless Terminal, Level Emitter
-- **0.3.0**: autocrafting (pattern encoder, pattern provider, crafting CPU, crafting monitor)
+- **0.3.0**: autocrafting - Pattern Encoder, Pattern Provider, Molecular Assembler, Crafting CPU
 - **0.4.0**: fluid and gas cells, Tiered Industries integration
 - **1.0.0**: polish, balance, trusted-player access lists

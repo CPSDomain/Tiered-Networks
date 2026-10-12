@@ -1,6 +1,8 @@
 package com.bobroflza.tierednetworks.item;
 
 import com.bobroflza.tierednetworks.blockentity.ControllerBlockEntity;
+import com.bobroflza.tierednetworks.blockentity.CraftingBlockEntity;
+import com.bobroflza.tierednetworks.crafting.CraftingManager;
 import com.bobroflza.tierednetworks.blockentity.NetworkNodeBlockEntity;
 import com.bobroflza.tierednetworks.grid.NetworkTracker;
 import com.bobroflza.tierednetworks.grid.NodeKind;
@@ -94,6 +96,14 @@ public class NetworkLinkerItem extends Item {
         if (id == null) {
             player.displayClientMessage(Component.translatable("message.tierednetworks.linker_empty").withStyle(ChatFormatting.YELLOW), true);
             return InteractionResult.FAIL;
+        }
+        if (node instanceof CraftingBlockEntity cpuBlock) {
+            // Linking one block of a Crafting CPU links the whole CPU.
+            CraftingManager.Cpu cpu = CraftingManager.cpuOf(cpuBlock);
+            for (CraftingBlockEntity b : cpu.blocks) b.setNetworkId(id);
+            player.displayClientMessage(Component.translatable("message.tierednetworks.cpu_linked", cpu.blocks.size(),
+                    id.toString().substring(0, 8), node.getStatus().display()).withStyle(ChatFormatting.GREEN), true);
+            return InteractionResult.CONSUME;
         }
         node.setNetworkId(id);
         if (node.getNodeKind() == NodeKind.ACCESS_POINT) {

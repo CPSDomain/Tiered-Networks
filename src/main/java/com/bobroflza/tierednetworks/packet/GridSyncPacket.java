@@ -34,7 +34,7 @@ public class GridSyncPacket {
         int size = buf.readVarInt();
         this.entries = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
-            entries.add(new TerminalMenu.GridEntry(buf.readItem(), buf.readVarLong()));
+            entries.add(new TerminalMenu.GridEntry(buf.readItem(), buf.readVarLong(), buf.readBoolean()));
         }
     }
 
@@ -47,6 +47,7 @@ public class GridSyncPacket {
         for (TerminalMenu.GridEntry e : entries) {
             buf.writeItem(e.stack());
             buf.writeVarLong(e.count());
+            buf.writeBoolean(e.craftable());
         }
     }
 

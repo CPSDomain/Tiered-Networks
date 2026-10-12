@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "tierednetworks:crafting_unit"
+    },
+    {
+      "item": "tierednetworks:network_processor"
+    },
+    {
+      "item": "tierednetworks:network_processor"
+    },
+    {
+      "item": "minecraft:diamond"
+    }
+  ],
+  "result": {
+    "item": "tierednetworks:crafting_coprocessor",
+    "count": 1
+  }
+}

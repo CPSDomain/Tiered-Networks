@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "busy=false": {
+      "model": "tierednetworks:block/crafting_unit"
+    },
+    "busy=true": {
+      "model": "tierednetworks:block/crafting_unit"
+    }
+  }
+}

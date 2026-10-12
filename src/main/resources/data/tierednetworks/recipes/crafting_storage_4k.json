@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "tierednetworks:crafting_unit"
+    },
+    {
+      "item": "tierednetworks:storage_component_4k"
+    }
+  ],
+  "result": {
+    "item": "tierednetworks:crafting_storage_4k",
+    "count": 1
+  }
+}

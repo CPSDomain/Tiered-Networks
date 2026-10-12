@@ -2,6 +2,8 @@ package com.bobroflza.tierednetworks.registry;
 
 import com.bobroflza.tierednetworks.TieredNetworks;
 import com.bobroflza.tierednetworks.grid.AccessPointTier;
+import com.bobroflza.tierednetworks.crafting.CpuPart;
+import com.bobroflza.tierednetworks.item.EncodedPatternItem;
 import com.bobroflza.tierednetworks.item.NetworkLinkerItem;
 import com.bobroflza.tierednetworks.item.StorageCellItem;
 import com.bobroflza.tierednetworks.item.WirelessTerminalItem;
@@ -37,6 +39,19 @@ public final class ModItems {
     public static final RegistryObject<Item> EXPORT_INTERFACE = block(ModBlocks.EXPORT_INTERFACE);
     public static final RegistryObject<Item> FLAT_EXPORT_INTERFACE = block(ModBlocks.FLAT_EXPORT_INTERFACE);
     public static final RegistryObject<Item> LEVEL_EMITTER = block(ModBlocks.LEVEL_EMITTER);
+    public static final RegistryObject<Item> PATTERN_ENCODER = block(ModBlocks.PATTERN_ENCODER);
+    public static final RegistryObject<Item> PATTERN_PROVIDER = block(ModBlocks.PATTERN_PROVIDER);
+    public static final RegistryObject<Item> ASSEMBLER = block(ModBlocks.ASSEMBLER);
+    public static final Map<CpuPart, RegistryObject<Item>> CPU_PARTS = new EnumMap<>(CpuPart.class);
+
+    static {
+        for (CpuPart part : CpuPart.values()) CPU_PARTS.put(part, block(ModBlocks.CPU_PARTS.get(part)));
+    }
+
+    public static final RegistryObject<Item> BLANK_PATTERN = ITEMS.register("blank_pattern",
+            () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> ENCODED_PATTERN = ITEMS.register("encoded_pattern",
+            () -> new EncodedPatternItem(new Item.Properties(), () -> BLANK_PATTERN.get()));
 
     // Tools.
     public static final RegistryObject<Item> NETWORK_LINKER = ITEMS.register("network_linker",

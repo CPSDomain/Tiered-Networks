@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "tierednetworks:block/molecular_assembler"
+    },
+    "lit=true": {
+      "model": "tierednetworks:block/molecular_assembler_lit"
+    }
+  }
+}

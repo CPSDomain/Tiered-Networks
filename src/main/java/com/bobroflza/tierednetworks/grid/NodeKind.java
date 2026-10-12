@@ -7,5 +7,7 @@ public enum NodeKind {
     TERMINAL,
     IMPORT,
     EXPORT,
-    EMITTER
+    EMITTER,
+    PROVIDER,
+    CRAFTING
 }

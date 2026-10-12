@@ -19,6 +19,8 @@ public final class ClientSetup {
             MenuScreens.register(ModMenus.TERMINAL.get(), TerminalScreen::new);
             MenuScreens.register(ModMenus.INTERFACE.get(), InterfaceScreen::new);
             MenuScreens.register(ModMenus.LEVEL_EMITTER.get(), LevelEmitterScreen::new);
+            MenuScreens.register(ModMenus.PATTERN_ENCODER.get(), PatternEncoderScreen::new);
+            MenuScreens.register(ModMenus.PATTERN_PROVIDER.get(), PatternProviderScreen::new);
         });
     }
 }

@@ -1,5 +1,6 @@
 package com.bobroflza.tierednetworks.menu;
 
+import com.bobroflza.tierednetworks.crafting.CraftingManager;
 import com.bobroflza.tierednetworks.grid.NetworkStatus;
 import com.bobroflza.tierednetworks.packet.GridSyncPacket;
 import com.bobroflza.tierednetworks.packet.ModPackets;
@@ -34,7 +35,7 @@ public class TerminalMenu extends AbstractContainerMenu {
     public static final int MODE_HALF = 1;
     public static final int MODE_TO_INVENTORY = 2;
 
-    public record GridEntry(ItemStack stack, long count) {}
+    public record GridEntry(ItemStack stack, long count, boolean craftable) {}
 
     /** Null on the client. */
     @Nullable private final TerminalHost host;
@@ -93,9 +94,12 @@ public class TerminalMenu extends AbstractContainerMenu {
         long used = 0, cap = 0;
         UUID id = status == NetworkStatus.ONLINE ? host.hostNetwork() : null;
         if (id != null) {
+            java.util.Set<ItemKey> craftable = new java.util.HashSet<>(CraftingManager.craftables(server, id));
             for (Map.Entry<ItemKey, Long> e : NetworkStorage.listItems(server, id).entrySet()) {
-                entries.add(new GridEntry(e.getKey().toStack(1), e.getValue()));
+                entries.add(new GridEntry(e.getKey().toStack(1), e.getValue(), craftable.remove(e.getKey())));
             }
+            // Craftable items with none in stock still show, so they can be requested.
+            for (ItemKey k : craftable) entries.add(new GridEntry(k.toStack(1), 0, true));
             long[] usage = NetworkStorage.usage(server, id);
             used = usage[0];
             cap = usage[1];
@@ -103,7 +107,7 @@ public class TerminalMenu extends AbstractContainerMenu {
         int hash = status.ordinal() * 31 + Long.hashCode(used) * 17 + Long.hashCode(cap);
         for (GridEntry e : entries) {
             hash = hash * 31 + ItemKey.of(e.stack()).hashCode();
-            hash = hash * 31 + Long.hashCode(e.count());
+            hash = hash * 31 + Long.hashCode(e.count()) + (e.craftable() ? 7 : 0);
         }
         if (!force && hash == lastSyncHash) return;
         lastSyncHash = hash;
@@ -162,6 +166,15 @@ public class TerminalMenu extends AbstractContainerMenu {
         }
         resync(sp);
         broadcastChanges();
+    }
+
+    /** Client asked to craft some of an item. */
+    public void handleCraftRequest(ServerPlayer sp, ItemStack request, long amount) {
+        UUID id = onlineNetwork();
+        MinecraftServer server = server();
+        if (id == null || server == null || request.isEmpty()) return;
+        sp.displayClientMessage(CraftingManager.request(server, id, ItemKey.of(request), amount, sp), false);
+        resync(sp);
     }
 
     @Override

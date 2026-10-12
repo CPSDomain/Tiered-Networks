@@ -112,6 +112,7 @@ public class TerminalScreen extends AbstractContainerScreen<TerminalMenu> {
             TerminalMenu.GridEntry e = view.get(idx);
             List<Component> lines = new ArrayList<>(Screen.getTooltipFromItem(minecraft, e.stack()));
             lines.add(Component.translatable("gui.tierednetworks.stored", String.format("%,d", e.count())).withStyle(ChatFormatting.AQUA));
+            if (e.craftable()) lines.add(Component.translatable("gui.tierednetworks.craftable_hint").withStyle(ChatFormatting.GOLD));
             g.renderComponentTooltip(font, lines, mouseX, mouseY);
         }
     }
@@ -126,7 +127,11 @@ public class TerminalScreen extends AbstractContainerScreen<TerminalMenu> {
                 if (idx < view.size()) {
                     TerminalMenu.GridEntry e = view.get(idx);
                     g.renderItem(e.stack(), x, y);
-                    drawCount(g, GuiDraw.shortCount(e.count()), x, y);
+                    if (e.count() == 0 && e.craftable()) {
+                        drawCount(g, Component.translatable("gui.tierednetworks.craft_label").getString(), x, y);
+                    } else {
+                        drawCount(g, GuiDraw.shortCount(e.count()), x, y);
+                    }
                 }
                 if (hovered != -1 && mouseInCell(mouseX, mouseY, x, y)) {
                     g.fill(x, y, x + 16, y + 16, 400, 0x80FFFFFF);
@@ -191,6 +196,14 @@ public class TerminalScreen extends AbstractContainerScreen<TerminalMenu> {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         int idx = gridIndexAt(mouseX, mouseY);
+        if (idx >= 0 && menu.getCarried().isEmpty() && view.get(idx).craftable()) {
+            TerminalMenu.GridEntry e = view.get(idx);
+            boolean left = button == GLFW.GLFW_MOUSE_BUTTON_LEFT;
+            if (button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE || (left && hasControlDown()) || (left && e.count() == 0)) {
+                if (minecraft != null) minecraft.setScreen(new CraftAmountScreen(this, menu.containerId, e.stack()));
+                return true;
+            }
+        }
         if (idx != -1 && (button == GLFW.GLFW_MOUSE_BUTTON_LEFT || button == GLFW.GLFW_MOUSE_BUTTON_RIGHT)) {
             if (!menu.getCarried().isEmpty()) {
                 ModPackets.CHANNEL.sendToServer(new GridInsertPacket(menu.containerId, button == GLFW.GLFW_MOUSE_BUTTON_RIGHT));

@@ -2,6 +2,10 @@ package com.bobroflza.tierednetworks.registry;
 
 import com.bobroflza.tierednetworks.TieredNetworks;
 import com.bobroflza.tierednetworks.blockentity.AccessPointBlockEntity;
+import com.bobroflza.tierednetworks.blockentity.AssemblerBlockEntity;
+import com.bobroflza.tierednetworks.blockentity.CraftingBlockEntity;
+import com.bobroflza.tierednetworks.blockentity.PatternEncoderBlockEntity;
+import com.bobroflza.tierednetworks.blockentity.PatternProviderBlockEntity;
 import com.bobroflza.tierednetworks.blockentity.ControllerBlockEntity;
 import com.bobroflza.tierednetworks.blockentity.DriveBayBlockEntity;
 import com.bobroflza.tierednetworks.blockentity.ExportInterfaceBlockEntity;
@@ -41,6 +45,19 @@ public final class ModBlockEntities {
 
     public static final RegistryObject<BlockEntityType<LevelEmitterBlockEntity>> LEVEL_EMITTER = BLOCK_ENTITIES.register("level_emitter",
             () -> BlockEntityType.Builder.of(LevelEmitterBlockEntity::new, ModBlocks.LEVEL_EMITTER.get()).build(null));
+
+    public static final RegistryObject<BlockEntityType<PatternEncoderBlockEntity>> PATTERN_ENCODER = BLOCK_ENTITIES.register("pattern_encoder",
+            () -> BlockEntityType.Builder.of(PatternEncoderBlockEntity::new, ModBlocks.PATTERN_ENCODER.get()).build(null));
+
+    public static final RegistryObject<BlockEntityType<PatternProviderBlockEntity>> PATTERN_PROVIDER = BLOCK_ENTITIES.register("pattern_provider",
+            () -> BlockEntityType.Builder.of(PatternProviderBlockEntity::new, ModBlocks.PATTERN_PROVIDER.get()).build(null));
+
+    public static final RegistryObject<BlockEntityType<AssemblerBlockEntity>> ASSEMBLER = BLOCK_ENTITIES.register("molecular_assembler",
+            () -> BlockEntityType.Builder.of(AssemblerBlockEntity::new, ModBlocks.ASSEMBLER.get()).build(null));
+
+    public static final RegistryObject<BlockEntityType<CraftingBlockEntity>> CRAFTING_CPU = BLOCK_ENTITIES.register("crafting_cpu",
+            () -> BlockEntityType.Builder.of(CraftingBlockEntity::new,
+                    ModBlocks.CPU_PARTS.values().stream().map(r -> r.get()).toArray(Block[]::new)).build(null));
 
     private ModBlockEntities() {}
 }
