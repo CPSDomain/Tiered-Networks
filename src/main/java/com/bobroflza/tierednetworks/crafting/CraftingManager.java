@@ -381,6 +381,38 @@ public final class CraftingManager {
             msg.append(Component.literal("\n  ")).append(Component.translatable("message.tierednetworks.cpu_waiting",
                     String.format("%,d", e.getValue()), e.getKey().toStack(1).getHoverName()).withStyle(ChatFormatting.GRAY));
         }
+        // Say why steps that still have batches to send aren't going out.
+        Level level = cpu.jobHolder.getLevel();
+        UUID id = cpu.jobHolder.getNetworkId();
+        if (level != null && level.getServer() != null && id != null) {
+            int problems = 0;
+            for (CraftingJob.Step step : job.steps) {
+                if (step.remaining <= 0) continue;
+                Component problem = stepProblem(level.getServer(), id, job, step);
+                if (problem == null) continue;
+                msg.append(Component.literal("\n  ")).append(problem);
+                if (++problems == 3) break;
+            }
+        }
         return msg;
+    }
+
+    /** Why a step can't send its next batch right now, or null if it can. */
+    @Nullable
+    private static Component stepProblem(MinecraftServer server, UUID id, CraftingJob job, CraftingJob.Step step) {
+        Component what = step.pattern.outputs().get(0).getHoverName();
+        if (!job.hasInputsFor(step.pattern)) {
+            return Component.translatable("message.tierednetworks.step_waiting_inputs", what).withStyle(ChatFormatting.GRAY);
+        }
+        boolean held = false;
+        for (PatternProviderBlockEntity p : providers(server, id)) {
+            if (!p.holds(step.pattern.tag())) continue;
+            held = true;
+            if (p.canRun(step.pattern)) return null;
+        }
+        String key = !held ? "message.tierednetworks.step_no_provider"
+                : step.pattern.isCrafting() ? "message.tierednetworks.step_no_assembler"
+                : "message.tierednetworks.step_no_machine";
+        return Component.translatable(key, what).withStyle(ChatFormatting.YELLOW);
     }
 }

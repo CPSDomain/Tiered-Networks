@@ -28,7 +28,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import javax.annotation.Nullable;
 import java.util.List;
 
-/** A Crafting CPU block. Right-click for the CPU's status; sneak + right-click a Crafting Monitor to cancel its job. */
+/** A Crafting CPU block. Right-click for the CPU's status; sneak + right-click with an empty hand to cancel its job. */
 public class CraftingBlock extends NetworkBlock {
     public static final BooleanProperty BUSY = BooleanProperty.create("busy");
 
@@ -82,7 +82,8 @@ public class CraftingBlock extends NetworkBlock {
         if (level.isClientSide || !(level.getBlockEntity(pos) instanceof CraftingBlockEntity be)) {
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
-        if (part == CpuPart.MONITOR && player.isShiftKeyDown()) {
+        // Sneak + right-click any CPU block with an empty hand cancels its job.
+        if (player.isShiftKeyDown() && player.getItemInHand(hand).isEmpty()) {
             CraftingManager.Cpu cpu = CraftingManager.cpuOf(be);
             if (cpu.jobHolder == null) {
                 player.displayClientMessage(Component.translatable("message.tierednetworks.cpu_idle"), true);
