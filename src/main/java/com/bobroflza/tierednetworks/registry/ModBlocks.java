@@ -6,6 +6,7 @@ import com.bobroflza.tierednetworks.block.ControllerBlock;
 import com.bobroflza.tierednetworks.block.DriveBayBlock;
 import com.bobroflza.tierednetworks.block.FlatInterfaceBlock;
 import com.bobroflza.tierednetworks.block.InterfaceBlock;
+import com.bobroflza.tierednetworks.block.LevelEmitterBlock;
 import com.bobroflza.tierednetworks.block.NetworkBlock;
 import com.bobroflza.tierednetworks.block.TerminalBlock;
 import com.bobroflza.tierednetworks.grid.AccessPointTier;
@@ -37,6 +38,10 @@ public final class ModBlocks {
             () -> new InterfaceBlock(NetworkBlock.defaultProperties(), true));
     public static final RegistryObject<Block> FLAT_EXPORT_INTERFACE = BLOCKS.register("flat_export_interface",
             () -> new FlatInterfaceBlock(NetworkBlock.defaultProperties().noOcclusion(), true));
+
+    public static final RegistryObject<Block> LEVEL_EMITTER = BLOCKS.register("level_emitter",
+            () -> new LevelEmitterBlock(NetworkBlock.defaultProperties()
+                    .lightLevel(s -> s.getValue(LevelEmitterBlock.POWERED) ? 7 : 0)));
 
     public static final Map<AccessPointTier, RegistryObject<Block>> ACCESS_POINTS = new EnumMap<>(AccessPointTier.class);
 

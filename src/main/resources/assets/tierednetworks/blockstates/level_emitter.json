@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "powered=false": {
+      "model": "tierednetworks:block/level_emitter"
+    },
+    "powered=true": {
+      "model": "tierednetworks:block/level_emitter_on"
+    }
+  }
+}

@@ -6,6 +6,7 @@ import com.bobroflza.tierednetworks.blockentity.ControllerBlockEntity;
 import com.bobroflza.tierednetworks.blockentity.DriveBayBlockEntity;
 import com.bobroflza.tierednetworks.blockentity.ExportInterfaceBlockEntity;
 import com.bobroflza.tierednetworks.blockentity.ImportInterfaceBlockEntity;
+import com.bobroflza.tierednetworks.blockentity.LevelEmitterBlockEntity;
 import com.bobroflza.tierednetworks.blockentity.TerminalBlockEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -37,6 +38,9 @@ public final class ModBlockEntities {
     public static final RegistryObject<BlockEntityType<ExportInterfaceBlockEntity>> EXPORT_INTERFACE = BLOCK_ENTITIES.register("export_interface",
             () -> BlockEntityType.Builder.of(ExportInterfaceBlockEntity::new,
                     ModBlocks.EXPORT_INTERFACE.get(), ModBlocks.FLAT_EXPORT_INTERFACE.get()).build(null));
+
+    public static final RegistryObject<BlockEntityType<LevelEmitterBlockEntity>> LEVEL_EMITTER = BLOCK_ENTITIES.register("level_emitter",
+            () -> BlockEntityType.Builder.of(LevelEmitterBlockEntity::new, ModBlocks.LEVEL_EMITTER.get()).build(null));
 
     private ModBlockEntities() {}
 }

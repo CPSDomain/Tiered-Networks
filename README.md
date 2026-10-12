@@ -27,6 +27,11 @@ The controller and the chunks holding your devices must be loaded for the networ
 - **Export Interface** (full and flat): pushes the items in its filter out of the network into the inventory next to it.
 - Right-click any interface for its 9-slot filter and online status. Import filters can be an allow list or a deny list; an empty import filter takes everything, an empty export filter exports nothing.
 
+## Wireless Terminal and Level Emitter
+
+- **Wireless Terminal**: sneak + right-click a controller or linked device to bind it, then right-click to open the network anywhere it reaches.
+- **Level Emitter**: redstone signal when the network holds at least (or fewer than) a set amount of an item. Empty slot counts everything.
+
 ## Config
 
 `config/tierednetworks-common.toml`: `requirePower` (set false to run without an FE mod), `controllerRange`, `controllerBaseCost`.
@@ -36,7 +41,7 @@ The controller and the chunks holding your devices must be loaded for the networ
 - **0.1.0**: controller, access points, linker, drive bay, storage cells (1k–256k), terminal
 - **0.1.1**: Import Interface
 - **0.1.2**: filters, flat interfaces, Export Interface
-- **0.2.0**: wireless handheld terminal, level emitter
+- **0.2.0**: Wireless Terminal, Level Emitter
 - **0.3.0**: autocrafting (pattern encoder, pattern provider, crafting CPU, crafting monitor)
 - **0.4.0**: fluid and gas cells, Tiered Industries integration
 - **1.0.0**: polish, balance, trusted-player access lists

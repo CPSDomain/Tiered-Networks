@@ -4,6 +4,7 @@ import com.bobroflza.tierednetworks.TieredNetworks;
 import com.bobroflza.tierednetworks.grid.AccessPointTier;
 import com.bobroflza.tierednetworks.item.NetworkLinkerItem;
 import com.bobroflza.tierednetworks.item.StorageCellItem;
+import com.bobroflza.tierednetworks.item.WirelessTerminalItem;
 import com.bobroflza.tierednetworks.storage.CellTier;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -35,10 +36,14 @@ public final class ModItems {
     public static final RegistryObject<Item> FLAT_IMPORT_INTERFACE = block(ModBlocks.FLAT_IMPORT_INTERFACE);
     public static final RegistryObject<Item> EXPORT_INTERFACE = block(ModBlocks.EXPORT_INTERFACE);
     public static final RegistryObject<Item> FLAT_EXPORT_INTERFACE = block(ModBlocks.FLAT_EXPORT_INTERFACE);
+    public static final RegistryObject<Item> LEVEL_EMITTER = block(ModBlocks.LEVEL_EMITTER);
 
     // Tools.
     public static final RegistryObject<Item> NETWORK_LINKER = ITEMS.register("network_linker",
             () -> new NetworkLinkerItem(new Item.Properties()));
+
+    public static final RegistryObject<Item> WIRELESS_TERMINAL = ITEMS.register("wireless_terminal",
+            () -> new WirelessTerminalItem(new Item.Properties().rarity(Rarity.UNCOMMON)));
 
     // Crafting components.
     public static final RegistryObject<Item> NETWORK_PROCESSOR = ITEMS.register("network_processor",

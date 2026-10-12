@@ -18,6 +18,7 @@ public final class ClientSetup {
             MenuScreens.register(ModMenus.DRIVE_BAY.get(), DriveBayScreen::new);
             MenuScreens.register(ModMenus.TERMINAL.get(), TerminalScreen::new);
             MenuScreens.register(ModMenus.INTERFACE.get(), InterfaceScreen::new);
+            MenuScreens.register(ModMenus.LEVEL_EMITTER.get(), LevelEmitterScreen::new);
         });
     }
 }

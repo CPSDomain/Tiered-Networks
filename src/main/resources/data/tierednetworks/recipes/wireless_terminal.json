@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " W ",
+    "PTP",
+    " I "
+  ],
+  "key": {
+    "W": {
+      "item": "tierednetworks:wireless_core"
+    },
+    "P": {
+      "item": "tierednetworks:network_processor"
+    },
+    "T": {
+      "item": "tierednetworks:terminal"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "item": "tierednetworks:wireless_terminal",
+    "count": 1
+  }
+}

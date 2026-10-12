@@ -6,5 +6,6 @@ public enum NodeKind {
     DRIVE,
     TERMINAL,
     IMPORT,
-    EXPORT
+    EXPORT,
+    EMITTER
 }

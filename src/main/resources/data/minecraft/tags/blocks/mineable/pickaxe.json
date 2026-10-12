@@ -7,6 +7,7 @@
     "tierednetworks:elite_access_point",
     "tierednetworks:dimensional_access_point",
     "tierednetworks:quantum_access_point",
+    "tierednetworks:level_emitter",
     "tierednetworks:drive_bay",
     "tierednetworks:terminal",
     "tierednetworks:import_interface",

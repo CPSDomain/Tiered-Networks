@@ -1,21 +1,17 @@
 package com.bobroflza.tierednetworks.menu;
 
-import com.bobroflza.tierednetworks.blockentity.TerminalBlockEntity;
 import com.bobroflza.tierednetworks.grid.NetworkStatus;
 import com.bobroflza.tierednetworks.packet.GridSyncPacket;
 import com.bobroflza.tierednetworks.packet.ModPackets;
-import com.bobroflza.tierednetworks.registry.ModBlocks;
 import com.bobroflza.tierednetworks.registry.ModMenus;
 import com.bobroflza.tierednetworks.storage.ItemKey;
 import com.bobroflza.tierednetworks.storage.NetworkStorage;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.PacketDistributor;
@@ -40,8 +36,8 @@ public class TerminalMenu extends AbstractContainerMenu {
 
     public record GridEntry(ItemStack stack, long count) {}
 
-    private final ContainerLevelAccess access;
-    @Nullable private final TerminalBlockEntity terminal;
+    /** Null on the client. */
+    @Nullable private final TerminalHost host;
     @Nullable private final Player player;
 
     // Server-side sync state.
@@ -54,19 +50,16 @@ public class TerminalMenu extends AbstractContainerMenu {
     private long clientUsed;
     private long clientCapacity;
 
+    /** Client side: the server sends no extra data. */
     public TerminalMenu(int id, Inventory inv, FriendlyByteBuf buf) {
-        this(id, inv, null, buf.readBlockPos());
+        this(id, inv, (TerminalHost) null);
     }
 
-    public TerminalMenu(int id, Inventory inv, TerminalBlockEntity be) {
-        this(id, inv, be, be.getBlockPos());
-    }
-
-    private TerminalMenu(int id, Inventory inv, @Nullable TerminalBlockEntity be, BlockPos pos) {
+    /** Server side. */
+    public TerminalMenu(int id, Inventory inv, @Nullable TerminalHost host) {
         super(ModMenus.TERMINAL.get(), id);
-        this.terminal = be;
-        this.player = be != null ? inv.player : null;
-        this.access = ContainerLevelAccess.create(inv.player.level(), pos);
+        this.host = host;
+        this.player = host != null ? inv.player : null;
         MenuHelper.addPlayerInventory(this::addSlot, inv, GRID_X, INV_Y);
     }
 
@@ -74,19 +67,19 @@ public class TerminalMenu extends AbstractContainerMenu {
 
     @Nullable
     private UUID onlineNetwork() {
-        if (terminal == null || !terminal.isOnline()) return null;
-        return terminal.getNetworkId();
+        if (host == null || host.hostStatus() != NetworkStatus.ONLINE) return null;
+        return host.hostNetwork();
     }
 
     @Nullable
     private MinecraftServer server() {
-        return terminal != null && terminal.getLevel() != null ? terminal.getLevel().getServer() : null;
+        return host == null ? null : host.hostServer();
     }
 
     @Override
     public void broadcastChanges() {
         super.broadcastChanges();
-        if (!(player instanceof ServerPlayer sp) || terminal == null) return;
+        if (!(player instanceof ServerPlayer sp) || host == null) return;
         if (syncTimer-- > 0) return;
         syncTimer = 10;
         sendGrid(sp, false);
@@ -95,10 +88,10 @@ public class TerminalMenu extends AbstractContainerMenu {
     private void sendGrid(ServerPlayer sp, boolean force) {
         MinecraftServer server = server();
         if (server == null) return;
-        NetworkStatus status = terminal.getStatus();
+        NetworkStatus status = host.hostStatus();
         List<GridEntry> entries = new ArrayList<>();
         long used = 0, cap = 0;
-        UUID id = status == NetworkStatus.ONLINE ? terminal.getNetworkId() : null;
+        UUID id = status == NetworkStatus.ONLINE ? host.hostNetwork() : null;
         if (id != null) {
             for (Map.Entry<ItemKey, Long> e : NetworkStorage.listItems(server, id).entrySet()) {
                 entries.add(new GridEntry(e.getKey().toStack(1), e.getValue()));
@@ -189,7 +182,7 @@ public class TerminalMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player p) {
-        return stillValid(access, p, ModBlocks.TERMINAL.get());
+        return host == null || host.hostStillValid(p);
     }
 
     // ---------------------------------------------------------------- client

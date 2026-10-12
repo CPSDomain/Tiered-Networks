@@ -41,6 +41,26 @@ public class NetworkLinkerItem extends Item {
         return tag != null && tag.hasUUID(TAG_NETWORK) ? tag.getUUID(TAG_NETWORK) : null;
     }
 
+    /**
+     * The network a player may copy from this device: they must own it (or be an op).
+     * Tells the player why not and returns null otherwise. Server side only.
+     */
+    @Nullable
+    public static UUID copyNetwork(Player player, NetworkNodeBlockEntity node) {
+        UUID id = node.getNetworkId();
+        if (id == null || player.level().getServer() == null) return null;
+        ControllerBlockEntity controller = node instanceof ControllerBlockEntity c ? c
+                : NetworkTracker.getController(player.level().getServer(), id);
+        boolean allowed = player.hasPermissions(2) || (controller != null && controller.isOwner(player));
+        if (!allowed) {
+            player.displayClientMessage(Component.translatable(controller == null
+                    ? "message.tierednetworks.copy_needs_controller" : "message.tierednetworks.not_owner")
+                    .withStyle(ChatFormatting.RED), true);
+            return null;
+        }
+        return id;
+    }
+
     @Override
     public InteractionResult useOn(UseOnContext ctx) {
         Level level = ctx.getLevel();
@@ -52,41 +72,20 @@ public class NetworkLinkerItem extends Item {
 
         ItemStack stack = ctx.getItemInHand();
 
-        if (node instanceof ControllerBlockEntity controller) {
-            if (!player.isShiftKeyDown()) {
-                player.displayClientMessage(controller.describeController(), false);
-                return InteractionResult.CONSUME;
-            }
-            if (!controller.isOwner(player) && !player.hasPermissions(2)) {
-                player.displayClientMessage(Component.translatable("message.tierednetworks.not_owner").withStyle(ChatFormatting.RED), true);
-                return InteractionResult.FAIL;
-            }
-            UUID id = controller.getNetworkId();
-            if (id == null) return InteractionResult.FAIL;
-            stack.getOrCreateTag().putUUID(TAG_NETWORK, id);
-            player.displayClientMessage(Component.translatable("message.tierednetworks.linker_bound", id.toString().substring(0, 8))
-                    .withStyle(ChatFormatting.GREEN), true);
+        if (node instanceof ControllerBlockEntity controller && !player.isShiftKeyDown()) {
+            player.displayClientMessage(controller.describeController(), false);
             return InteractionResult.CONSUME;
         }
 
         if (player.isShiftKeyDown()) {
-            // Sneak-clicking any linked device copies its network, as long as you own it (or are an op).
-            UUID nodeNet = node.getNetworkId();
-            if (nodeNet == null) {
+            if (node.getNetworkId() == null) {
                 player.displayClientMessage(node.describeNetwork(), false);
                 return InteractionResult.CONSUME;
             }
-            ControllerBlockEntity owner = level.getServer() == null ? null
-                    : NetworkTracker.getController(level.getServer(), nodeNet);
-            boolean allowed = player.hasPermissions(2) || (owner != null && owner.isOwner(player));
-            if (!allowed) {
-                player.displayClientMessage(Component.translatable(owner == null
-                        ? "message.tierednetworks.copy_needs_controller" : "message.tierednetworks.not_owner")
-                        .withStyle(ChatFormatting.RED), true);
-                return InteractionResult.FAIL;
-            }
-            stack.getOrCreateTag().putUUID(TAG_NETWORK, nodeNet);
-            player.displayClientMessage(Component.translatable("message.tierednetworks.linker_bound", nodeNet.toString().substring(0, 8))
+            UUID copied = copyNetwork(player, node);
+            if (copied == null) return InteractionResult.FAIL;
+            stack.getOrCreateTag().putUUID(TAG_NETWORK, copied);
+            player.displayClientMessage(Component.translatable("message.tierednetworks.linker_bound", copied.toString().substring(0, 8))
                     .withStyle(ChatFormatting.GREEN), true);
             return InteractionResult.CONSUME;
         }
