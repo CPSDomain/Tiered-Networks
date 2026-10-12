@@ -39,6 +39,12 @@ The controller and the chunks holding your devices must be loaded for the networ
 3. **Crafting CPU**: touching Crafting Units, at least one Crafting Storage (1k-64k), optional Co-Processors and a Crafting Monitor. Link one block and the whole CPU links. One job per CPU.
 4. In a terminal, middle-click (or Ctrl + click) a craftable item, enter an amount, press Craft. Missing ingredients are listed in chat.
 
+## Fluids and gases
+
+- **Fluid Cells** (liquids) and **Gas Cells** (any lighter-than-air fluid, including every Tiered Industries gas) go in a Drive Bay. 1k holds 256 buckets, up to 256k at 65,536 buckets; 15 types per cell.
+- Terminal **Fluids** tab: click with an empty bucket/Gas Cylinder to fill it, a full one to empty it.
+- Import/Export Interfaces move fluids and gases too (8,000 mB every half second). A filled bucket or cylinder in the filter names a fluid.
+
 ## Config
 
 `config/tierednetworks-common.toml`: `requirePower` (set false to run without an FE mod), `controllerRange`, `controllerBaseCost`.
@@ -50,5 +56,5 @@ The controller and the chunks holding your devices must be loaded for the networ
 - **0.1.2**: filters, flat interfaces, Export Interface
 - **0.2.0**: Wireless Terminal, Level Emitter
 - **0.3.0**: autocrafting - Pattern Encoder, Pattern Provider, Molecular Assembler, Crafting CPU
-- **0.4.0**: fluid and gas cells, Tiered Industries integration
+- **0.4.0**: Fluid and Gas Cells, terminal Fluids tab, interfaces move fluids/gases (works with Tiered Industries gases)
 - **1.0.0**: polish, balance, trusted-player access lists

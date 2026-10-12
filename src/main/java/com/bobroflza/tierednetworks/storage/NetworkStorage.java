@@ -102,4 +102,74 @@ public final class NetworkStorage {
         int got = (int) (amount - left);
         return got <= 0 ? ItemStack.EMPTY : key.toStack(got);
     }
+
+    // ------------------------------------------------------------ fluids and gases
+
+    private record FluidCellRef(DriveBayBlockEntity drive, FluidCellInventory cell) {}
+
+    private static List<FluidCellRef> onlineFluidCells(MinecraftServer server, UUID id) {
+        List<FluidCellRef> out = new ArrayList<>();
+        for (GlobalPos pos : NetworkTracker.nodesOfKind(id, NodeKind.DRIVE)) {
+            if (!NetworkTracker.isOnline(server, id, pos)) continue;
+            BlockEntity be = NetworkTracker.getLoadedBlockEntity(server, pos);
+            if (!(be instanceof DriveBayBlockEntity drive)) continue;
+            for (int i = 0; i < drive.getCells().getSlots(); i++) {
+                FluidCellInventory cell = FluidCellInventory.of(drive.getCells().getStackInSlot(i));
+                if (cell != null) out.add(new FluidCellRef(drive, cell));
+            }
+        }
+        return out;
+    }
+
+    /** Every fluid and gas stored, in mB. */
+    public static Map<FluidKey, Long> listFluids(MinecraftServer server, UUID id) {
+        Map<FluidKey, Long> totals = new HashMap<>();
+        for (FluidCellRef ref : onlineFluidCells(server, id)) {
+            ref.cell().getFluids().forEach((k, v) -> totals.merge(k, v, Long::sum));
+        }
+        return totals;
+    }
+
+    /** Fluid storage totals in mB: used, capacity. */
+    public static long[] fluidUsage(MinecraftServer server, UUID id) {
+        long used = 0, cap = 0;
+        for (FluidCellRef ref : onlineFluidCells(server, id)) {
+            used += ref.cell().getUsed();
+            cap += ref.cell().getCapacity();
+        }
+        return new long[]{used, cap};
+    }
+
+    /** Stores (or checks) up to {@code amount} mB. Returns how much fits / was stored. */
+    public static long insertFluid(MinecraftServer server, UUID id, FluidKey key, long amount, boolean simulate) {
+        if (amount <= 0) return 0;
+        long left = amount;
+        List<FluidCellRef> cells = onlineFluidCells(server, id);
+        for (int pass = 0; pass < 2 && left > 0; pass++) {
+            for (FluidCellRef ref : cells) {
+                if (left <= 0) break;
+                if ((pass == 0) != ref.cell().contains(key)) continue;
+                long done = ref.cell().insert(key, left, simulate);
+                if (done > 0) {
+                    left -= done;
+                    if (!simulate) ref.drive().onCellsChanged();
+                }
+            }
+        }
+        return amount - left;
+    }
+
+    /** Takes (or checks) up to {@code amount} mB. Returns how much came out / would. */
+    public static long extractFluid(MinecraftServer server, UUID id, FluidKey key, long amount, boolean simulate) {
+        long left = amount;
+        for (FluidCellRef ref : onlineFluidCells(server, id)) {
+            if (left <= 0) break;
+            long done = ref.cell().extract(key, left, simulate);
+            if (done > 0) {
+                left -= done;
+                if (!simulate) ref.drive().onCellsChanged();
+            }
+        }
+        return amount - left;
+    }
 }

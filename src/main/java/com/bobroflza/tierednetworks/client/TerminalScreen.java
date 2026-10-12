@@ -2,19 +2,27 @@ package com.bobroflza.tierednetworks.client;
 
 import com.bobroflza.tierednetworks.grid.NetworkStatus;
 import com.bobroflza.tierednetworks.menu.TerminalMenu;
+import com.bobroflza.tierednetworks.packet.FluidClickPacket;
 import com.bobroflza.tierednetworks.packet.GridExtractPacket;
 import com.bobroflza.tierednetworks.packet.GridInsertPacket;
 import com.bobroflza.tierednetworks.packet.ModPackets;
+import com.bobroflza.tierednetworks.storage.FluidKey;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.lwjgl.glfw.GLFW;
 
@@ -28,11 +36,17 @@ public class TerminalScreen extends AbstractContainerScreen<TerminalMenu> {
     private static final int SCROLL_W = 12;
     private static final int GRID_H = TerminalMenu.GRID_ROWS * 18;
 
+    /** Remembered between openings, like a creative tab. */
+    private static boolean fluidMode;
+
     private EditBox search;
+    private Button tabButton;
     private int scrollRow;
     private List<TerminalMenu.GridEntry> view = new ArrayList<>();
-    private List<TerminalMenu.GridEntry> lastSource;
+    private List<TerminalMenu.FluidEntry> fluidView = new ArrayList<>();
+    private Object lastSource;
     private String lastQuery = "";
+    private boolean lastMode;
 
     public TerminalScreen(TerminalMenu menu, Inventory inv, Component title) {
         super(menu, inv, title);
@@ -49,25 +63,48 @@ public class TerminalScreen extends AbstractContainerScreen<TerminalMenu> {
         search.setBordered(true);
         search.setHint(Component.translatable("gui.tierednetworks.search").withStyle(ChatFormatting.DARK_GRAY));
         addRenderableWidget(search);
+        tabButton = addRenderableWidget(Button.builder(tabLabel(), b -> {
+                    fluidMode = !fluidMode;
+                    scrollRow = 0;
+                    b.setMessage(tabLabel());
+                })
+                .bounds(leftPos + 140, topPos + 16, 46, 12)
+                .tooltip(Tooltip.create(Component.translatable("gui.tierednetworks.tab_help"))).build());
+    }
+
+    private Component tabLabel() {
+        return Component.translatable(fluidMode ? "gui.tierednetworks.tab_fluids" : "gui.tierednetworks.tab_items");
     }
 
     // ---------------------------------------------------------------- view
 
     private void refreshView() {
-        List<TerminalMenu.GridEntry> source = menu.getClientEntries();
+        Object source = fluidMode ? menu.getClientFluids() : menu.getClientEntries();
         String query = search == null ? "" : search.getValue().trim().toLowerCase(Locale.ROOT);
-        if (source == lastSource && query.equals(lastQuery)) return;
+        if (source == lastSource && query.equals(lastQuery) && lastMode == fluidMode) return;
         lastSource = source;
         lastQuery = query;
+        lastMode = fluidMode;
 
-        List<TerminalMenu.GridEntry> out = new ArrayList<>();
-        for (TerminalMenu.GridEntry e : source) {
-            if (matches(e.stack(), query)) out.add(e);
+        if (fluidMode) {
+            List<TerminalMenu.FluidEntry> out = new ArrayList<>();
+            for (TerminalMenu.FluidEntry e : menu.getClientFluids()) {
+                if (matchesFluid(e.fluid(), query)) out.add(e);
+            }
+            Comparator<TerminalMenu.FluidEntry> byAmount = Comparator.comparingLong(TerminalMenu.FluidEntry::amount);
+            Comparator<TerminalMenu.FluidEntry> byName = Comparator.comparing(e -> e.fluid().getDisplayName().getString());
+            out.sort(byAmount.reversed().thenComparing(byName));
+            fluidView = out;
+        } else {
+            List<TerminalMenu.GridEntry> out = new ArrayList<>();
+            for (TerminalMenu.GridEntry e : menu.getClientEntries()) {
+                if (matches(e.stack(), query)) out.add(e);
+            }
+            Comparator<TerminalMenu.GridEntry> byCount = Comparator.comparingLong(TerminalMenu.GridEntry::count);
+            Comparator<TerminalMenu.GridEntry> byName = Comparator.comparing(e -> e.stack().getHoverName().getString());
+            out.sort(byCount.reversed().thenComparing(byName));
+            view = out;
         }
-        Comparator<TerminalMenu.GridEntry> byCount = Comparator.comparingLong(TerminalMenu.GridEntry::count);
-        Comparator<TerminalMenu.GridEntry> byName = Comparator.comparing(e -> e.stack().getHoverName().getString());
-        out.sort(byCount.reversed().thenComparing(byName));
-        view = out;
         scrollRow = Mth.clamp(scrollRow, 0, maxScroll());
     }
 
@@ -80,21 +117,34 @@ public class TerminalScreen extends AbstractContainerScreen<TerminalMenu> {
         return stack.getHoverName().getString().toLowerCase(Locale.ROOT).contains(query);
     }
 
+    private static boolean matchesFluid(FluidStack fluid, String query) {
+        if (query.isEmpty()) return true;
+        if (query.startsWith("@")) {
+            ResourceLocation id = ForgeRegistries.FLUIDS.getKey(fluid.getFluid());
+            return id != null && id.getNamespace().contains(query.substring(1));
+        }
+        return fluid.getDisplayName().getString().toLowerCase(Locale.ROOT).contains(query);
+    }
+
+    private int viewSize() {
+        return fluidMode ? fluidView.size() : view.size();
+    }
+
     private int totalRows() {
-        return (view.size() + TerminalMenu.GRID_COLS - 1) / TerminalMenu.GRID_COLS;
+        return (viewSize() + TerminalMenu.GRID_COLS - 1) / TerminalMenu.GRID_COLS;
     }
 
     private int maxScroll() {
         return Math.max(0, totalRows() - TerminalMenu.GRID_ROWS);
     }
 
-    /** Index into {@link #view} under the mouse, -1 if outside the grid, -2 if on an empty grid cell. */
+    /** Index into the current view under the mouse, -1 if outside the grid, -2 if on an empty grid cell. */
     private int gridIndexAt(double mouseX, double mouseY) {
         int gx = (int) mouseX - leftPos - TerminalMenu.GRID_X;
         int gy = (int) mouseY - topPos - TerminalMenu.GRID_Y;
         if (gx < 0 || gy < 0 || gx >= TerminalMenu.GRID_COLS * 18 || gy >= GRID_H) return -1;
         int idx = (scrollRow + gy / 18) * TerminalMenu.GRID_COLS + gx / 18;
-        return idx < view.size() ? idx : -2;
+        return idx < viewSize() ? idx : -2;
     }
 
     // ---------------------------------------------------------------- render
@@ -108,7 +158,17 @@ public class TerminalScreen extends AbstractContainerScreen<TerminalMenu> {
         renderTooltip(g, mouseX, mouseY);
 
         int idx = gridIndexAt(mouseX, mouseY);
-        if (idx >= 0 && menu.getCarried().isEmpty()) {
+        if (idx < 0) return;
+        if (fluidMode) {
+            TerminalMenu.FluidEntry e = fluidView.get(idx);
+            List<Component> lines = new ArrayList<>();
+            lines.add(e.fluid().getDisplayName());
+            lines.add(Component.translatable("gui.tierednetworks.stored_mb", String.format("%,d", e.amount())).withStyle(ChatFormatting.AQUA));
+            lines.add(Component.translatable(FluidKey.isGas(e.fluid().getFluid()) ? "gui.tierednetworks.kind_gas" : "gui.tierednetworks.kind_fluid")
+                    .withStyle(ChatFormatting.GRAY));
+            lines.add(Component.translatable("gui.tierednetworks.fluid_hint").withStyle(ChatFormatting.DARK_GRAY));
+            g.renderComponentTooltip(font, lines, mouseX, mouseY);
+        } else if (menu.getCarried().isEmpty()) {
             TerminalMenu.GridEntry e = view.get(idx);
             List<Component> lines = new ArrayList<>(Screen.getTooltipFromItem(minecraft, e.stack()));
             lines.add(Component.translatable("gui.tierednetworks.stored", String.format("%,d", e.count())).withStyle(ChatFormatting.AQUA));
@@ -124,13 +184,19 @@ public class TerminalScreen extends AbstractContainerScreen<TerminalMenu> {
                 int idx = (scrollRow + row) * TerminalMenu.GRID_COLS + col;
                 int x = leftPos + TerminalMenu.GRID_X + col * 18;
                 int y = topPos + TerminalMenu.GRID_Y + row * 18;
-                if (idx < view.size()) {
-                    TerminalMenu.GridEntry e = view.get(idx);
-                    g.renderItem(e.stack(), x, y);
-                    if (e.count() == 0 && e.craftable()) {
-                        drawCount(g, Component.translatable("gui.tierednetworks.craft_label").getString(), x, y);
+                if (idx < viewSize()) {
+                    if (fluidMode) {
+                        TerminalMenu.FluidEntry e = fluidView.get(idx);
+                        renderFluid(g, e.fluid(), x, y);
+                        drawCount(g, fluidAmount(e.amount()), x, y);
                     } else {
-                        drawCount(g, GuiDraw.shortCount(e.count()), x, y);
+                        TerminalMenu.GridEntry e = view.get(idx);
+                        g.renderItem(e.stack(), x, y);
+                        if (e.count() == 0 && e.craftable()) {
+                            drawCount(g, Component.translatable("gui.tierednetworks.craft_label").getString(), x, y);
+                        } else {
+                            drawCount(g, GuiDraw.shortCount(e.count()), x, y);
+                        }
                     }
                 }
                 if (hovered != -1 && mouseInCell(mouseX, mouseY, x, y)) {
@@ -138,6 +204,24 @@ public class TerminalScreen extends AbstractContainerScreen<TerminalMenu> {
                 }
             }
         }
+    }
+
+    private static String fluidAmount(long mb) {
+        if (mb < 1000) return mb + "mB";
+        return GuiDraw.shortCount(mb / 1000) + "B";
+    }
+
+    private void renderFluid(GuiGraphics g, FluidStack fluid, int x, int y) {
+        if (minecraft == null || fluid.isEmpty()) return;
+        IClientFluidTypeExtensions ext = IClientFluidTypeExtensions.of(fluid.getFluid());
+        ResourceLocation still = ext.getStillTexture(fluid);
+        if (still == null) return;
+        TextureAtlasSprite sprite = minecraft.getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(still);
+        int tint = ext.getTintColor(fluid);
+        float r = ((tint >> 16) & 0xFF) / 255F;
+        float gr = ((tint >> 8) & 0xFF) / 255F;
+        float b = (tint & 0xFF) / 255F;
+        g.blit(x, y, 0, 16, 16, sprite, r, gr, b, 1F);
     }
 
     private static boolean mouseInCell(int mx, int my, int x, int y) {
@@ -182,11 +266,14 @@ public class TerminalScreen extends AbstractContainerScreen<TerminalMenu> {
 
         NetworkStatus status = menu.getClientStatus();
         Component line;
-        if (status == NetworkStatus.ONLINE) {
+        if (status != NetworkStatus.ONLINE) {
+            line = status.display();
+        } else if (fluidMode) {
+            line = Component.translatable("gui.tierednetworks.fluid_usage",
+                    GuiDraw.shortCount(menu.getClientFluidUsed() / 1000), GuiDraw.shortCount(menu.getClientFluidCapacity() / 1000));
+        } else {
             line = Component.translatable("gui.tierednetworks.usage",
                     GuiDraw.shortCount(menu.getClientUsed()), GuiDraw.shortCount(menu.getClientCapacity()), view.size());
-        } else {
-            line = status.display();
         }
         g.drawString(font, line, 8, 19, GuiDraw.LABEL, false);
     }
@@ -196,7 +283,18 @@ public class TerminalScreen extends AbstractContainerScreen<TerminalMenu> {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         int idx = gridIndexAt(mouseX, mouseY);
-        if (idx >= 0 && menu.getCarried().isEmpty() && view.get(idx).craftable()) {
+
+        if (fluidMode && idx != -1 && (button == GLFW.GLFW_MOUSE_BUTTON_LEFT || button == GLFW.GLFW_MOUSE_BUTTON_RIGHT)) {
+            // Fluids move with the container on the cursor: a full one empties into the network,
+            // an empty one fills from the fluid you clicked.
+            if (!menu.getCarried().isEmpty()) {
+                FluidStack target = idx >= 0 ? fluidView.get(idx).fluid() : FluidStack.EMPTY;
+                ModPackets.CHANNEL.sendToServer(new FluidClickPacket(menu.containerId, target));
+            }
+            return true;
+        }
+
+        if (!fluidMode && idx >= 0 && menu.getCarried().isEmpty() && view.get(idx).craftable()) {
             TerminalMenu.GridEntry e = view.get(idx);
             boolean left = button == GLFW.GLFW_MOUSE_BUTTON_LEFT;
             if (button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE || (left && hasControlDown()) || (left && e.count() == 0)) {
@@ -204,7 +302,7 @@ public class TerminalScreen extends AbstractContainerScreen<TerminalMenu> {
                 return true;
             }
         }
-        if (idx != -1 && (button == GLFW.GLFW_MOUSE_BUTTON_LEFT || button == GLFW.GLFW_MOUSE_BUTTON_RIGHT)) {
+        if (!fluidMode && idx != -1 && (button == GLFW.GLFW_MOUSE_BUTTON_LEFT || button == GLFW.GLFW_MOUSE_BUTTON_RIGHT)) {
             if (!menu.getCarried().isEmpty()) {
                 ModPackets.CHANNEL.sendToServer(new GridInsertPacket(menu.containerId, button == GLFW.GLFW_MOUSE_BUTTON_RIGHT));
             } else if (idx >= 0) {

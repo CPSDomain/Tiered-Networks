@@ -4,6 +4,7 @@ import com.bobroflza.tierednetworks.TieredNetworks;
 import com.bobroflza.tierednetworks.grid.AccessPointTier;
 import com.bobroflza.tierednetworks.crafting.CpuPart;
 import com.bobroflza.tierednetworks.item.EncodedPatternItem;
+import com.bobroflza.tierednetworks.item.FluidCellItem;
 import com.bobroflza.tierednetworks.item.NetworkLinkerItem;
 import com.bobroflza.tierednetworks.item.StorageCellItem;
 import com.bobroflza.tierednetworks.item.WirelessTerminalItem;
@@ -78,6 +79,20 @@ public final class ModItems {
             Rarity rarity = tier.ordinal() >= 3 ? Rarity.RARE : tier.ordinal() >= 1 ? Rarity.UNCOMMON : Rarity.COMMON;
             STORAGE_CELLS.put(tier, ITEMS.register("storage_cell_" + tier.getName(),
                     () -> new StorageCellItem(new Item.Properties().rarity(rarity), tier)));
+        }
+    }
+
+    public static final Map<CellTier, RegistryObject<Item>> FLUID_CELLS = new EnumMap<>(CellTier.class);
+    public static final Map<CellTier, RegistryObject<Item>> GAS_CELLS = new EnumMap<>(CellTier.class);
+
+    static {
+        for (CellTier tier : CellTier.values()) {
+            FLUID_CELLS.put(tier, ITEMS.register("fluid_cell_" + tier.getName(),
+                    () -> new FluidCellItem(new Item.Properties(), tier, false)));
+        }
+        for (CellTier tier : CellTier.values()) {
+            GAS_CELLS.put(tier, ITEMS.register("gas_cell_" + tier.getName(),
+                    () -> new FluidCellItem(new Item.Properties(), tier, true)));
         }
     }
 

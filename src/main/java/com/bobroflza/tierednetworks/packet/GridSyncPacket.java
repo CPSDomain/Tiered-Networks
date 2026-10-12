@@ -17,8 +17,15 @@ public class GridSyncPacket {
     final long used;
     final long capacity;
     final List<TerminalMenu.GridEntry> entries;
+    final long fluidUsed;
+    final long fluidCapacity;
+    final List<TerminalMenu.FluidEntry> fluids;
 
-    public GridSyncPacket(int containerId, int status, long used, long capacity, List<TerminalMenu.GridEntry> entries) {
+    public GridSyncPacket(int containerId, int status, long used, long capacity, List<TerminalMenu.GridEntry> entries,
+                          long fluidUsed, long fluidCapacity, List<TerminalMenu.FluidEntry> fluids) {
+        this.fluidUsed = fluidUsed;
+        this.fluidCapacity = fluidCapacity;
+        this.fluids = fluids;
         this.containerId = containerId;
         this.status = status;
         this.used = used;
@@ -36,6 +43,13 @@ public class GridSyncPacket {
         for (int i = 0; i < size; i++) {
             entries.add(new TerminalMenu.GridEntry(buf.readItem(), buf.readVarLong(), buf.readBoolean()));
         }
+        this.fluidUsed = buf.readVarLong();
+        this.fluidCapacity = buf.readVarLong();
+        int fluidCount = buf.readVarInt();
+        this.fluids = new ArrayList<>(fluidCount);
+        for (int i = 0; i < fluidCount; i++) {
+            fluids.add(new TerminalMenu.FluidEntry(buf.readFluidStack(), buf.readVarLong()));
+        }
     }
 
     public void encode(FriendlyByteBuf buf) {
@@ -48,6 +62,13 @@ public class GridSyncPacket {
             buf.writeItem(e.stack());
             buf.writeVarLong(e.count());
             buf.writeBoolean(e.craftable());
+        }
+        buf.writeVarLong(fluidUsed);
+        buf.writeVarLong(fluidCapacity);
+        buf.writeVarInt(fluids.size());
+        for (TerminalMenu.FluidEntry e : fluids) {
+            buf.writeFluidStack(e.fluid());
+            buf.writeVarLong(e.amount());
         }
     }
 

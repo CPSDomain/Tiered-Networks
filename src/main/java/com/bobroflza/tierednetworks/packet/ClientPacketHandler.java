@@ -12,7 +12,7 @@ public final class ClientPacketHandler {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;
         if (player.containerMenu instanceof TerminalMenu menu && menu.containerId == msg.containerId) {
-            menu.receiveGrid(msg.status, msg.used, msg.capacity, msg.entries);
+            menu.receiveGrid(msg.status, msg.used, msg.capacity, msg.entries, msg.fluidUsed, msg.fluidCapacity, msg.fluids);
         }
     }
 }

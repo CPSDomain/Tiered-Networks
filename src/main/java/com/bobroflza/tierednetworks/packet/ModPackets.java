@@ -7,7 +7,7 @@ import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class ModPackets {
-    private static final String PROTOCOL = "3";
+    private static final String PROTOCOL = "4";
 
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             new ResourceLocation(TieredNetworks.MODID, "main"),
@@ -40,6 +40,11 @@ public final class ModPackets {
                 .encoder(CraftRequestPacket::encode)
                 .decoder(CraftRequestPacket::new)
                 .consumerMainThread(CraftRequestPacket::handle)
+                .add();
+        CHANNEL.messageBuilder(FluidClickPacket.class, id++, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(FluidClickPacket::encode)
+                .decoder(FluidClickPacket::new)
+                .consumerMainThread(FluidClickPacket::handle)
                 .add();
         CHANNEL.messageBuilder(EmitterThresholdPacket.class, id++, NetworkDirection.PLAY_TO_SERVER)
                 .encoder(EmitterThresholdPacket::encode)

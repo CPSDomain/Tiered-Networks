@@ -1,6 +1,7 @@
 package com.bobroflza.tierednetworks.blockentity;
 
 import com.bobroflza.tierednetworks.grid.NodeKind;
+import com.bobroflza.tierednetworks.item.FluidCellItem;
 import com.bobroflza.tierednetworks.item.StorageCellItem;
 import com.bobroflza.tierednetworks.menu.DriveBayMenu;
 import com.bobroflza.tierednetworks.registry.ModBlockEntities;
@@ -24,7 +25,7 @@ public class DriveBayBlockEntity extends NetworkNodeBlockEntity implements MenuP
     private final ItemStackHandler cells = new ItemStackHandler(SLOTS) {
         @Override
         public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
-            return stack.getItem() instanceof StorageCellItem;
+            return stack.getItem() instanceof StorageCellItem || stack.getItem() instanceof FluidCellItem;
         }
 
         @Override

@@ -17,6 +17,9 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import com.bobroflza.tierednetworks.storage.FluidKey;
+import net.minecraftforge.fluids.FluidUtil;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
@@ -38,8 +41,14 @@ public abstract class InterfaceBlockEntity extends NetworkNodeBlockEntity implem
     /** Most items moved per transfer. */
     public static final int AMOUNT = 64;
 
+    /** mB of fluid or gas moved per transfer. */
+    public static final int FLUID_AMOUNT = 8_000;
+
     /** A neighbouring inventory, seen from the side that touches this interface. */
     protected record Target(IItemHandler handler) {}
+
+    /** A neighbouring tank (or gas tank, or pipe), seen from the side that touches this interface. */
+    protected record FluidTarget(IFluidHandler handler) {}
 
     private final ItemStackHandler filter = new ItemStackHandler(FILTER_SLOTS) {
         @Override
@@ -105,20 +114,43 @@ public abstract class InterfaceBlockEntity extends NetworkNodeBlockEntity implem
         return 2;
     }
 
-    /** Filter items, skipping empty slots. */
+    /**
+     * Filter entries that name items. Filled fluid containers (buckets, gas cylinders) name a fluid instead,
+     * so they are left out here and used by {@link #filterFluids()}.
+     */
     protected List<ItemStack> filterItems() {
         List<ItemStack> out = new ArrayList<>();
         for (int i = 0; i < FILTER_SLOTS; i++) {
             ItemStack s = filter.getStackInSlot(i);
-            if (!s.isEmpty()) out.add(s);
+            if (!s.isEmpty() && !namesFluid(s)) out.add(s);
         }
         return out;
     }
 
-    protected boolean filterContains(ItemStack stack) {
+    private static boolean namesFluid(ItemStack s) {
+        return FluidUtil.getFluidContained(s).map(f -> !f.isEmpty()).orElse(false);
+    }
+
+    /** The fluids named by filled buckets, gas cylinders or other containers in the filter. */
+    protected List<FluidKey> filterFluids() {
+        List<FluidKey> out = new ArrayList<>();
         for (int i = 0; i < FILTER_SLOTS; i++) {
             ItemStack s = filter.getStackInSlot(i);
-            if (!s.isEmpty() && s.getItem() == stack.getItem()) return true;
+            if (s.isEmpty()) continue;
+            FluidUtil.getFluidContained(s).ifPresent(f -> {
+                if (!f.isEmpty()) out.add(FluidKey.of(f));
+            });
+        }
+        return out;
+    }
+
+    /** Moves up to {@code budget} mB of fluids and gases. Interfaces that don't handle fluids leave this alone. */
+    protected void transferFluids(MinecraftServer server, UUID id, List<FluidTarget> targets, int budget) {
+    }
+
+    protected boolean filterContains(ItemStack stack) {
+        for (ItemStack s : filterItems()) {
+            if (s.getItem() == stack.getItem()) return true;
         }
         return false;
     }
@@ -146,6 +178,16 @@ public abstract class InterfaceBlockEntity extends NetworkNodeBlockEntity implem
         return out;
     }
 
+    private List<FluidTarget> fluidTargets() {
+        List<FluidTarget> out = new ArrayList<>();
+        for (Direction dir : sides()) {
+            BlockEntity be = level.getBlockEntity(worldPosition.relative(dir));
+            if (be == null || be instanceof NetworkNodeBlockEntity) continue;
+            be.getCapability(ForgeCapabilities.FLUID_HANDLER, dir.getOpposite()).ifPresent(h -> out.add(new FluidTarget(h)));
+        }
+        return out;
+    }
+
     public void serverTick() {
         if (--cooldown > 0) return;
         cooldown = INTERVAL;
@@ -154,6 +196,8 @@ public abstract class InterfaceBlockEntity extends NetworkNodeBlockEntity implem
         if (server == null) return;
         List<Target> targets = targets();
         if (!targets.isEmpty()) transfer(server, networkId, targets, AMOUNT);
+        List<FluidTarget> fluidTargets = fluidTargets();
+        if (!fluidTargets.isEmpty()) transferFluids(server, networkId, fluidTargets, FLUID_AMOUNT);
     }
 
     @Override

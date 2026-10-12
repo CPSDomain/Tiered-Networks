@@ -2,7 +2,9 @@ package com.bobroflza.tierednetworks.blockentity;
 
 import com.bobroflza.tierednetworks.grid.NodeKind;
 import com.bobroflza.tierednetworks.registry.ModBlockEntities;
+import com.bobroflza.tierednetworks.storage.FluidKey;
 import com.bobroflza.tierednetworks.storage.ItemKey;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import com.bobroflza.tierednetworks.storage.NetworkStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
@@ -58,6 +60,29 @@ public class ExportInterfaceBlockEntity extends InterfaceBlockEntity {
                     budget -= pushInto(server, id, key, target.handler(), (int) Math.min(budget, Math.min(have, key.maxStackSize())));
                     have = NetworkStorage.listItems(server, id).getOrDefault(key, 0L);
                 }
+            }
+        }
+    }
+
+    @Override
+    protected void transferFluids(MinecraftServer server, UUID id, List<FluidTarget> targets, int budget) {
+        List<FluidKey> wanted = filterFluids();
+        if (wanted.isEmpty()) return;
+        Map<FluidKey, Long> stored = NetworkStorage.listFluids(server, id);
+        for (FluidKey key : wanted) {
+            if (budget <= 0) return;
+            long have = stored.getOrDefault(key, 0L);
+            for (FluidTarget target : targets) {
+                if (budget <= 0 || have <= 0) break;
+                int offer = (int) Math.min(budget, have);
+                int room = target.handler().fill(key.toStack(offer), IFluidHandler.FluidAction.SIMULATE);
+                if (room <= 0) continue;
+                long got = NetworkStorage.extractFluid(server, id, key, room, false);
+                if (got <= 0) continue;
+                int filled = target.handler().fill(key.toStack((int) got), IFluidHandler.FluidAction.EXECUTE);
+                if (filled < got) NetworkStorage.insertFluid(server, id, key, got - filled, false);
+                budget -= filled;
+                have -= filled;
             }
         }
     }

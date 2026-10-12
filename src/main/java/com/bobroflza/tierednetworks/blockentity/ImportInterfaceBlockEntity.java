@@ -2,7 +2,10 @@ package com.bobroflza.tierednetworks.blockentity;
 
 import com.bobroflza.tierednetworks.grid.NodeKind;
 import com.bobroflza.tierednetworks.registry.ModBlockEntities;
+import com.bobroflza.tierednetworks.storage.FluidKey;
 import com.bobroflza.tierednetworks.storage.NetworkStorage;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.MinecraftServer;
@@ -64,6 +67,52 @@ public class ImportInterfaceBlockEntity extends InterfaceBlockEntity {
     };
     private final LazyOptional<IItemHandler> inputCap = LazyOptional.of(() -> networkInput);
 
+    /** Lets pipes (fluid or Tiered Industries gas pipes) and tanks push straight into the network. */
+    private final IFluidHandler fluidInput = new IFluidHandler() {
+        @Override
+        public int getTanks() {
+            return 1;
+        }
+
+        @Nonnull
+        @Override
+        public FluidStack getFluidInTank(int tank) {
+            return FluidStack.EMPTY;
+        }
+
+        @Override
+        public int getTankCapacity(int tank) {
+            return Integer.MAX_VALUE;
+        }
+
+        @Override
+        public boolean isFluidValid(int tank, @Nonnull FluidStack stack) {
+            return acceptsFluid(FluidKey.of(stack));
+        }
+
+        @Override
+        public int fill(FluidStack resource, FluidAction action) {
+            MinecraftServer server = server();
+            if (resource.isEmpty() || server == null || networkId == null || !isOnline()) return 0;
+            FluidKey key = FluidKey.of(resource);
+            if (!acceptsFluid(key)) return 0;
+            return (int) NetworkStorage.insertFluid(server, networkId, key, resource.getAmount(), action.simulate());
+        }
+
+        @Nonnull
+        @Override
+        public FluidStack drain(FluidStack resource, FluidAction action) {
+            return FluidStack.EMPTY;
+        }
+
+        @Nonnull
+        @Override
+        public FluidStack drain(int maxDrain, FluidAction action) {
+            return FluidStack.EMPTY;
+        }
+    };
+    private final LazyOptional<IFluidHandler> fluidCap = LazyOptional.of(() -> fluidInput);
+
     public ImportInterfaceBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.IMPORT_INTERFACE.get(), pos, state);
     }
@@ -76,6 +125,36 @@ public class ImportInterfaceBlockEntity extends InterfaceBlockEntity {
     @Override
     public NodeKind getNodeKind() {
         return NodeKind.IMPORT;
+    }
+
+    public boolean acceptsFluid(FluidKey key) {
+        List<FluidKey> wanted = filterFluids();
+        if (wanted.isEmpty()) return true;
+        return wanted.contains(key) != denyList;
+    }
+
+    @Override
+    protected void transferFluids(MinecraftServer server, UUID id, List<FluidTarget> targets, int budget) {
+        for (FluidTarget target : targets) {
+            if (budget <= 0) return;
+            IFluidHandler source = target.handler();
+            for (int tank = 0; tank < source.getTanks() && budget > 0; tank++) {
+                FluidStack inTank = source.getFluidInTank(tank);
+                if (inTank.isEmpty()) continue;
+                FluidKey key = FluidKey.of(inTank);
+                if (!acceptsFluid(key)) continue;
+                long fits = NetworkStorage.insertFluid(server, id, key, Math.min(budget, inTank.getAmount()), true);
+                if (fits <= 0) continue;
+                FluidStack drained = source.drain(key.toStack((int) fits), IFluidHandler.FluidAction.EXECUTE);
+                if (drained.isEmpty()) continue;
+                long stored = NetworkStorage.insertFluid(server, id, key, drained.getAmount(), false);
+                if (stored < drained.getAmount()) {
+                    // Should not happen: put the rest back.
+                    source.fill(key.toStack((int) (drained.getAmount() - stored)), IFluidHandler.FluidAction.EXECUTE);
+                }
+                budget -= (int) stored;
+            }
+        }
     }
 
     public boolean accepts(ItemStack stack) {
@@ -118,6 +197,7 @@ public class ImportInterfaceBlockEntity extends InterfaceBlockEntity {
     @Override
     public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
         if (cap == ForgeCapabilities.ITEM_HANDLER) return inputCap.cast();
+        if (cap == ForgeCapabilities.FLUID_HANDLER) return fluidCap.cast();
         return super.getCapability(cap, side);
     }
 
@@ -125,5 +205,6 @@ public class ImportInterfaceBlockEntity extends InterfaceBlockEntity {
     public void invalidateCaps() {
         super.invalidateCaps();
         inputCap.invalidate();
+        fluidCap.invalidate();
     }
 }

@@ -5,7 +5,12 @@ import com.bobroflza.tierednetworks.grid.NetworkStatus;
 import com.bobroflza.tierednetworks.packet.GridSyncPacket;
 import com.bobroflza.tierednetworks.packet.ModPackets;
 import com.bobroflza.tierednetworks.registry.ModMenus;
+import com.bobroflza.tierednetworks.storage.FluidKey;
 import com.bobroflza.tierednetworks.storage.ItemKey;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidUtil;
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import com.bobroflza.tierednetworks.storage.NetworkStorage;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.MinecraftServer;
@@ -37,6 +42,9 @@ public class TerminalMenu extends AbstractContainerMenu {
 
     public record GridEntry(ItemStack stack, long count, boolean craftable) {}
 
+    /** A stored fluid or gas: {@code fluid} has amount 1000 and only names the type; {@code amount} is the real total in mB. */
+    public record FluidEntry(FluidStack fluid, long amount) {}
+
     /** Null on the client. */
     @Nullable private final TerminalHost host;
     @Nullable private final Player player;
@@ -50,6 +58,9 @@ public class TerminalMenu extends AbstractContainerMenu {
     private NetworkStatus clientStatus = NetworkStatus.UNLINKED;
     private long clientUsed;
     private long clientCapacity;
+    private List<FluidEntry> clientFluids = new ArrayList<>();
+    private long clientFluidUsed;
+    private long clientFluidCapacity;
 
     /** Client side: the server sends no extra data. */
     public TerminalMenu(int id, Inventory inv, FriendlyByteBuf buf) {
@@ -91,7 +102,8 @@ public class TerminalMenu extends AbstractContainerMenu {
         if (server == null) return;
         NetworkStatus status = host.hostStatus();
         List<GridEntry> entries = new ArrayList<>();
-        long used = 0, cap = 0;
+        List<FluidEntry> fluids = new ArrayList<>();
+        long used = 0, cap = 0, fUsed = 0, fCap = 0;
         UUID id = status == NetworkStatus.ONLINE ? host.hostNetwork() : null;
         if (id != null) {
             java.util.Set<ItemKey> craftable = new java.util.HashSet<>(CraftingManager.craftables(server, id));
@@ -103,16 +115,27 @@ public class TerminalMenu extends AbstractContainerMenu {
             long[] usage = NetworkStorage.usage(server, id);
             used = usage[0];
             cap = usage[1];
+            for (Map.Entry<FluidKey, Long> e : NetworkStorage.listFluids(server, id).entrySet()) {
+                fluids.add(new FluidEntry(e.getKey().toStack(1000), e.getValue()));
+            }
+            long[] fUsage = NetworkStorage.fluidUsage(server, id);
+            fUsed = fUsage[0];
+            fCap = fUsage[1];
         }
         int hash = status.ordinal() * 31 + Long.hashCode(used) * 17 + Long.hashCode(cap);
         for (GridEntry e : entries) {
             hash = hash * 31 + ItemKey.of(e.stack()).hashCode();
             hash = hash * 31 + Long.hashCode(e.count()) + (e.craftable() ? 7 : 0);
         }
+        hash = hash * 31 + Long.hashCode(fUsed) * 13 + Long.hashCode(fCap);
+        for (FluidEntry e : fluids) {
+            hash = hash * 31 + FluidKey.of(e.fluid()).hashCode();
+            hash = hash * 31 + Long.hashCode(e.amount());
+        }
         if (!force && hash == lastSyncHash) return;
         lastSyncHash = hash;
         ModPackets.CHANNEL.send(PacketDistributor.PLAYER.with(() -> sp),
-                new GridSyncPacket(containerId, status.ordinal(), used, cap, entries));
+                new GridSyncPacket(containerId, status.ordinal(), used, cap, entries, fUsed, fCap, fluids));
     }
 
     private void resync(ServerPlayer sp) {
@@ -168,6 +191,54 @@ public class TerminalMenu extends AbstractContainerMenu {
         broadcastChanges();
     }
 
+    /**
+     * Client clicked the fluid grid holding a container. A container with fluid in it empties into the network;
+     * an empty one fills with the clicked fluid. Stacked containers are done one at a time.
+     */
+    public void handleFluidClick(ServerPlayer sp, FluidStack target) {
+        UUID id = onlineNetwork();
+        MinecraftServer server = server();
+        ItemStack carried = getCarried();
+        if (id == null || server == null || carried.isEmpty()) return;
+        ItemStack one = carried.copyWithCount(1);
+        IFluidHandlerItem handler = FluidUtil.getFluidHandler(one).resolve().orElse(null);
+        if (handler == null) return;
+
+        boolean changed = false;
+        FluidStack inside = handler.drain(Integer.MAX_VALUE, IFluidHandler.FluidAction.SIMULATE);
+        if (!inside.isEmpty()) {
+            FluidKey key = FluidKey.of(inside);
+            long fits = NetworkStorage.insertFluid(server, id, key, inside.getAmount(), true);
+            if (fits > 0) {
+                FluidStack drained = handler.drain(key.toStack((int) fits), IFluidHandler.FluidAction.EXECUTE);
+                if (!drained.isEmpty()) {
+                    NetworkStorage.insertFluid(server, id, key, drained.getAmount(), false);
+                    changed = true;
+                }
+            }
+        } else if (target != null && !target.isEmpty()) {
+            FluidKey key = FluidKey.of(target);
+            long have = NetworkStorage.extractFluid(server, id, key, Integer.MAX_VALUE, true);
+            int room = have <= 0 ? 0 : handler.fill(key.toStack((int) Math.min(have, Integer.MAX_VALUE)), IFluidHandler.FluidAction.SIMULATE);
+            if (room > 0) {
+                long got = NetworkStorage.extractFluid(server, id, key, room, false);
+                int filled = handler.fill(key.toStack((int) got), IFluidHandler.FluidAction.EXECUTE);
+                if (filled < got) NetworkStorage.insertFluid(server, id, key, got - filled, false);
+                changed = filled > 0;
+            }
+        }
+        if (!changed) return;
+        ItemStack result = handler.getContainer();
+        if (carried.getCount() == 1) {
+            setCarried(result);
+        } else {
+            carried.shrink(1);
+            if (!sp.getInventory().add(result)) sp.drop(result, false);
+        }
+        resync(sp);
+        broadcastChanges();
+    }
+
     /** Client asked to craft some of an item. */
     public void handleCraftRequest(ServerPlayer sp, ItemStack request, long amount) {
         UUID id = onlineNetwork();
@@ -200,7 +271,11 @@ public class TerminalMenu extends AbstractContainerMenu {
 
     // ---------------------------------------------------------------- client
 
-    public void receiveGrid(int statusOrdinal, long used, long capacity, List<GridEntry> entries) {
+    public void receiveGrid(int statusOrdinal, long used, long capacity, List<GridEntry> entries,
+                            long fluidUsed, long fluidCapacity, List<FluidEntry> fluids) {
+        this.clientFluidUsed = fluidUsed;
+        this.clientFluidCapacity = fluidCapacity;
+        this.clientFluids = fluids;
         NetworkStatus[] values = NetworkStatus.values();
         this.clientStatus = statusOrdinal >= 0 && statusOrdinal < values.length ? values[statusOrdinal] : NetworkStatus.UNLINKED;
         this.clientUsed = used;
@@ -212,4 +287,7 @@ public class TerminalMenu extends AbstractContainerMenu {
     public NetworkStatus getClientStatus() { return clientStatus; }
     public long getClientUsed() { return clientUsed; }
     public long getClientCapacity() { return clientCapacity; }
+    public List<FluidEntry> getClientFluids() { return clientFluids; }
+    public long getClientFluidUsed() { return clientFluidUsed; }
+    public long getClientFluidCapacity() { return clientFluidCapacity; }
 }
