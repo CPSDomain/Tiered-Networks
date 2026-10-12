@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "DWD",
+    "PAP",
+    "DWD"
+  ],
+  "key": {
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "W": {
+      "item": "tierednetworks:wireless_core"
+    },
+    "P": {
+      "item": "tierednetworks:network_processor"
+    },
+    "A": {
+      "item": "tierednetworks:advanced_access_point"
+    }
+  },
+  "result": {
+    "item": "tierednetworks:elite_access_point",
+    "count": 1
+  }
+}

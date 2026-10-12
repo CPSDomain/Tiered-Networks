@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "tierednetworks:block/advanced_access_point"
+    }
+  }
+}

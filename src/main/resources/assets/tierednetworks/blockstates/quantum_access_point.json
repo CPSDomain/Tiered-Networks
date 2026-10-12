@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "tierednetworks:block/quantum_access_point"
+    }
+  }
+}

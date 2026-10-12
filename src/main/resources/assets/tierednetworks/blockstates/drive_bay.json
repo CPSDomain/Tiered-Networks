@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "tierednetworks:block/drive_bay"
+    },
+    "facing=east": {
+      "model": "tierednetworks:block/drive_bay",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "tierednetworks:block/drive_bay",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "tierednetworks:block/drive_bay",
+      "y": 270
+    }
+  }
+}

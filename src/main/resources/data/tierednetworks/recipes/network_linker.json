@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "  W",
+    " P ",
+    "I  "
+  ],
+  "key": {
+    "W": {
+      "item": "tierednetworks:wireless_core"
+    },
+    "P": {
+      "item": "tierednetworks:network_processor"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "item": "tierednetworks:network_linker",
+    "count": 1
+  }
+}

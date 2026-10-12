@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GWG",
+    "PAP",
+    "GWG"
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:gold_ingot"
+    },
+    "W": {
+      "item": "tierednetworks:wireless_core"
+    },
+    "P": {
+      "item": "tierednetworks:network_processor"
+    },
+    "A": {
+      "item": "tierednetworks:basic_access_point"
+    }
+  },
+  "result": {
+    "item": "tierednetworks:advanced_access_point",
+    "count": 1
+  }
+}

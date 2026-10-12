@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " W ",
+    "IPI",
+    "IRI"
+  ],
+  "key": {
+    "W": {
+      "item": "tierednetworks:wireless_core"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "P": {
+      "item": "tierednetworks:network_processor"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "result": {
+    "item": "tierednetworks:basic_access_point",
+    "count": 1
+  }
+}

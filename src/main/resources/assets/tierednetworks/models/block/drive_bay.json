@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "top": "tierednetworks:block/machine_casing",
+    "front": "tierednetworks:block/drive_bay_front",
+    "side": "tierednetworks:block/machine_casing"
+  }
+}

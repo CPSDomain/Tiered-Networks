@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "tierednetworks:block/network_controller"
+    }
+  }
+}

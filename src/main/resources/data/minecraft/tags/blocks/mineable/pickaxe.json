@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "tierednetworks:network_controller",
+    "tierednetworks:basic_access_point",
+    "tierednetworks:advanced_access_point",
+    "tierednetworks:elite_access_point",
+    "tierednetworks:dimensional_access_point",
+    "tierednetworks:quantum_access_point",
+    "tierednetworks:drive_bay",
+    "tierednetworks:terminal"
+  ]
+}

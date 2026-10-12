@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "OEO",
+    "WAW",
+    "OEO"
+  ],
+  "key": {
+    "O": {
+      "item": "minecraft:crying_obsidian"
+    },
+    "E": {
+      "item": "minecraft:ender_eye"
+    },
+    "W": {
+      "item": "tierednetworks:wireless_core"
+    },
+    "A": {
+      "item": "tierednetworks:elite_access_point"
+    }
+  },
+  "result": {
+    "item": "tierednetworks:dimensional_access_point",
+    "count": 1
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "IGI",
+    "PWP",
+    "III"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "P": {
+      "item": "tierednetworks:network_processor"
+    },
+    "W": {
+      "item": "tierednetworks:wireless_core"
+    }
+  },
+  "result": {
+    "item": "tierednetworks:terminal",
+    "count": 1
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "RCR",
+    "CPC",
+    "RCR"
+  ],
+  "key": {
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "C": {
+      "item": "tierednetworks:storage_component_64k"
+    },
+    "P": {
+      "item": "tierednetworks:network_processor"
+    }
+  },
+  "result": {
+    "item": "tierednetworks:storage_component_256k",
+    "count": 1
+  }
+}
