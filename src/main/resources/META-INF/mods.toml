@@ -30,3 +30,11 @@ description='''${mod_description}'''
     versionRange="[0,)"
     ordering="NONE"
     side="BOTH"
+
+# Optional: JEI's "+" button fills the Pattern Encoder and requests crafts from a terminal.
+[[dependencies.${mod_id}]]
+    modId="jei"
+    mandatory=false
+    versionRange="[15,)"
+    ordering="NONE"
+    side="CLIENT"

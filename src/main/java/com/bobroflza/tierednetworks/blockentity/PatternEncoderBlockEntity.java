@@ -93,6 +93,24 @@ public class PatternEncoderBlockEntity extends BlockEntity implements MenuProvid
         setChanged();
     }
 
+    /** Lays out a recipe: crafting keeps the 3x3 positions with one of each, processing keeps the amounts. */
+    public void fill(boolean craftingMode, List<ItemStack> in, List<ItemStack> out) {
+        crafting = craftingMode;
+        clear();
+        for (int i = 0; i < INPUTS && i < in.size(); i++) {
+            ItemStack s = in.get(i);
+            if (s.isEmpty()) continue;
+            inputs.setStackInSlot(i, s.copyWithCount(crafting ? 1 : Math.max(1, Math.min(64, s.getCount()))));
+        }
+        if (!crafting) {
+            for (int i = 0; i < OUTPUTS && i < out.size(); i++) {
+                ItemStack s = out.get(i);
+                if (!s.isEmpty()) outputs.setStackInSlot(i, s.copyWithCount(Math.max(1, Math.min(64, s.getCount()))));
+            }
+        }
+        setChanged();
+    }
+
     public void clear() {
         for (int i = 0; i < INPUTS; i++) inputs.setStackInSlot(i, ItemStack.EMPTY);
         for (int i = 0; i < OUTPUTS; i++) outputs.setStackInSlot(i, ItemStack.EMPTY);

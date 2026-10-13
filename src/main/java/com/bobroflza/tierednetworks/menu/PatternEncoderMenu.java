@@ -126,6 +126,12 @@ public class PatternEncoderMenu extends AbstractContainerMenu {
         super.clicked(slotId, button, type, player);
     }
 
+    /** Server side: JEI's "+" sent a recipe. Ghost copies only - nothing is taken from the player. */
+    public void fillFromRecipe(boolean crafting, List<ItemStack> in, List<ItemStack> out) {
+        if (encoder == null) return;
+        encoder.fill(crafting, in, out);
+    }
+
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
         if (index < SLOT_BLANK) return ItemStack.EMPTY;

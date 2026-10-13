@@ -17,14 +17,20 @@ public class CraftAmountScreen extends Screen {
     private final Screen parent;
     private final int containerId;
     private final ItemStack item;
+    private final long initial;
     private EditBox amount;
     private int left, top;
 
     public CraftAmountScreen(Screen parent, int containerId, ItemStack item) {
+        this(parent, containerId, item, 1);
+    }
+
+    public CraftAmountScreen(Screen parent, int containerId, ItemStack item, long initial) {
         super(Component.translatable("gui.tierednetworks.craft_title"));
         this.parent = parent;
         this.containerId = containerId;
         this.item = item.copyWithCount(1);
+        this.initial = Math.max(1, initial);
     }
 
     @Override
@@ -34,7 +40,7 @@ public class CraftAmountScreen extends Screen {
         amount = new EditBox(font, left + 30, top + 30, 116, 16, Component.translatable("gui.tierednetworks.threshold"));
         amount.setMaxLength(7);
         amount.setFilter(s -> s.matches("\\d{0,7}"));
-        amount.setValue("1");
+        amount.setValue(Long.toString(initial));
         addRenderableWidget(amount);
         setInitialFocus(amount);
 

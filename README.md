@@ -38,6 +38,7 @@ The controller and the chunks holding your devices must be loaded for the networ
 2. **Pattern Provider** (linked): holds 9 patterns. A **Molecular Assembler** touching it runs crafting patterns; a machine touching it runs processing patterns. Machine output must come back into the network: eject into the provider, or use an Import Interface.
 3. **Crafting CPU**: touching Crafting Units, at least one Crafting Storage (1k-64k), optional Co-Processors and a Crafting Monitor. Link one block and the whole CPU links. One job per CPU.
 4. In a terminal, middle-click (or Ctrl + click) a craftable item, enter an amount, press Craft. Missing ingredients are listed in chat.
+5. With JEI: press **+** on a recipe to fill the Pattern Encoder (crafting grid or processing pattern), or - with a terminal open - to request that item.
 
 ## Fluids and gases
 
@@ -57,4 +58,5 @@ The controller and the chunks holding your devices must be loaded for the networ
 - **0.2.0**: Wireless Terminal, Level Emitter
 - **0.3.0**: autocrafting - Pattern Encoder, Pattern Provider, Molecular Assembler, Crafting CPU
 - **0.4.0**: Fluid and Gas Cells, terminal Fluids tab, interfaces move fluids/gases (works with Tiered Industries gases)
+- **0.4.1**: JEI + button for the Pattern Encoder and terminals
 - **1.0.0**: polish, balance, trusted-player access lists
